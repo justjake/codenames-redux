@@ -1,0 +1,15 @@
+{
+  "name": "redux-codenames",
+  "version": "1.0.0",
+  "description": "codenames boardgame chatbot dingus",
+  "main": "index.js",
+  "scripts": {
+      "test": "babel-node ./index.js"
+  },
+  "author": "jake",
+  "license": "ISC",
+  "dependencies": {
+    "babel": "5.8.35",
+    "redux": "3.3.1"
+  }
+}
