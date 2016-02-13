@@ -1,4 +1,4 @@
-import Board from './board';
+import Board from './models/Board';
 
 function main() {
   const board = new Board();

@@ -1,4 +1,4 @@
-import DECK from './data/cards.json';
+import DECK from '../data/cards.json';
 
 import {
   ROWS,
@@ -12,9 +12,9 @@ import {
   STARTING_TEAMS,
   SECOND_TEAMS,
   NEUTRALS
-} from './constants';
+} from '../constants';
 
-import { fiddyFiddy, repeat, shuffled, pad } from './utils';
+import { fiddyFiddy, repeat, shuffled, pad } from '../utils';
 
 /**
  * cards are stored in JSON as tuples of [String, String]

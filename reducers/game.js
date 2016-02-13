@@ -52,7 +52,7 @@ function skip(player) {
   }
 }
 
-function initialGameState(board) {
+function initialState(board) {
   return {
     phase: GIVE_CLUE,
     remainingGuesses: null,
@@ -79,7 +79,7 @@ function nextPhase(phase) {
   throw new Error(`wat: should not have unknown phase ${phase}`);
 }
 
-function gameReducer(state, action) {
+export default function gameReducer(state, action) {
   // reject invalid actions
   if (action.player.team !== state.team) return state;
 
