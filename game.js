@@ -9,17 +9,19 @@ const GUESS = 'guess';
 const SKIP = 'skip';
 const BY_GODS_MANDATE = 'because i say so';
 
+import { RED, BLUE, KILL } from './constants';
 import { merge } from './utils';
+import { Board } from './board';
 
 // needed?
-class Player {
+export class Player {
   constructor(team, role) {
     this.team = team;
     this.role = role;
   }
 }
 
-class Clue {
+export class Clue {
   constructor(word, count) {
     this.word = word;
     this.count = count;
@@ -50,7 +52,7 @@ function skip(player) {
   }
 }
 
-function initialState(board) {
+function initialGameState(board) {
   return {
     phase: GIVE_CLUE,
     remainingGuesses: null,
@@ -89,7 +91,11 @@ function gameReducer(state, action) {
   });
 
   // make sure we an actually execute this action
+  // should we reject these here, or somewhere upsteam?
+  // should we reject these by throwing execptions (eg UnknownWordError)?
   if (action.type !== state.phase) return state;
+  if (action.type === GUESS && action.player.role !== GUESSER) return state;
+  if (action.type === GIVE_CLUE && action.player.role !== SPYMASTER) return state;
 
   switch (action.type) {
   case GIVE_CLUE:
@@ -130,9 +136,15 @@ function gameReducer(state, action) {
   throw new Error(`oops: should not be able to reach this (action.type: ${action.type})`);
 }
 
+// for now no Redux is involved
+
 function clueHistoryReducer(clueHistory, action) {
   if (action.type !=== GIVE_CLUE) return clueHistory;
   return [...clueHistory, {team: action.player.team, clue: action.clue}];
+}
+
+function normalizeWord(word) {
+  return word.trim().toUpperCase();
 }
 
 class UnknownWordError extends Error {};
