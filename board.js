@@ -63,7 +63,13 @@ function layoutGrid(rows, cols, words) {
 }
 
 export default class Board {
-  constructor(words, redStarting = fiddyFiddy()) {
+  constructor(words, redStarting = fiddyFiddy(), init = true) {
+    // sometimes we're duping
+    if (!init) return;
+    this.init(words, redStarting);
+  }
+
+  init(words, redStarting) {
     // record the words this game was created with so we can get new words next time
     this.wordsInBoard = words || pickWords(DECK, SQUARES);
 
@@ -93,6 +99,11 @@ export default class Board {
     return this.words.lookup[word]
   }
 
+  hasWord(word) {
+    if (this.loc(word)) return true;
+    return false;
+  }
+
   teamOf(word) {
     const [row, col] = this.loc(word);
     return this.key[row][col];
@@ -107,6 +118,18 @@ export default class Board {
     const words = gridToString(this.words.grid);
     const key = gridToString(this.key);
     return ['words:', words, 'key:', key].join("\n");
+  }
+
+  getDepleted() {
+    [KILL, RED, BLUE].filter(team => this.remaining[team] === 0)[0];
+  }
+
+  // TODO: be acutally immutable instead of half-assing it in Game ruducer
+  dup() {
+    const dup = new Board(null, null, false);
+    const datas = JSON.parse(JSON.stringify(this));
+    Object.assign(dup, datas);
+    return dup;
   }
 
   // omg mutations

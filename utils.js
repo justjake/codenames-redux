@@ -36,3 +36,7 @@ export function pad(str, needed) {
   if (str.length === needed) return str;
   return (str + repeat(' ', needed - str.length).join(''));
 }
+
+export function merge(base, added) {
+  return Object.assign({}, base, added);
+}
