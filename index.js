@@ -48,7 +48,7 @@ function shuffled(array) {
   const seen = {};
 
   while (result.length < array.length) {
-    const idx = (Math.random() * array.length);
+    const idx = Math.floor(Math.random() * array.length);
     // fug
     if (seen[idx]) continue;
 
@@ -70,7 +70,7 @@ function makeKeyDeck(reds, blues, kills, total) {
 }
 
 function pickWords(deck, count) {
-  return  shuffled(deck).slice(0, count).map(pickSide);
+  return shuffled(deck).slice(0, count).map(pickSide);
 }
 
 function layoutGrid(rows, cols, words) {
@@ -95,11 +95,10 @@ function layoutGrid(rows, cols, words) {
 
 class Board {
   constructor(words, redStarting = fiddyFiddy()) {
-    console.log(DECK)
     // record the words this game was created with so we can get new words next time
     this.wordsInBoard = words || pickWords(DECK, ROWS * COLS);
 
-    this.words = layoutGrid(ROWS, COLS, this.words);
+    this.words = layoutGrid(ROWS, COLS, this.wordsInBoard);
     this.remaining = {
       [RED]: redStarting ? STARTING_TEAMS : SECOND_TEAMS,
       [BLUE]: redStarting ? SECOND_TEAMS : STARTING_TEAMS,
@@ -118,7 +117,7 @@ class Board {
     this.key = layoutGrid(ROWS, COLS, keyDeck).grid;
 
     // picks will be filled in with team constants as words are picked out
-    this.picks = layoutGrid(ROWS, COLS, repat(null, ROWS * COLS)).grid;
+    this.picks = layoutGrid(ROWS, COLS, repeat(null, ROWS * COLS)).grid;
   }
 
   loc(word) {
@@ -160,7 +159,7 @@ class Board {
 }
 
 function pad(str, needed) {
-  if (str.length === needed) return val;
+  if (str.length === needed) return str;
   return (str + repeat(' ', needed - str.length).join(''));
 }
 
