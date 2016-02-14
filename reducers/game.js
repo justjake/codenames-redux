@@ -13,20 +13,7 @@ import { RED, BLUE, KILL } from './constants';
 import { merge } from './utils';
 import { Board } from './board';
 
-// needed?
-export class Player {
-  constructor(team, role) {
-    this.team = team;
-    this.role = role;
-  }
-}
 
-export class Clue {
-  constructor(word, count) {
-    this.word = word;
-    this.count = count;
-  }
-}
 
 // action creators
 function giveClue(player, clue) {
