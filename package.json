@@ -4,12 +4,13 @@
   "description": "codenames boardgame chatbot dingus",
   "main": "index.js",
   "scripts": {
-      "test": "babel-node ./index.js"
+    "test": "babel-node ./index.js"
   },
   "author": "jake",
   "license": "ISC",
   "dependencies": {
     "babel": "5.8.35",
+    "chalk": "1.1.1",
     "redux": "3.3.1"
   }
 }
