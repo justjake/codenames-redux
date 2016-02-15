@@ -40,3 +40,7 @@ function rootReducer(state = initialState(), action) {
 function objToList(obj) {
   return Object.keys(obj).map(key => obj[key])
 }
+
+// errors
+class NotEnoughSpymastersError extends Error {}
+class NotEnoughGuessersError extends Error{}

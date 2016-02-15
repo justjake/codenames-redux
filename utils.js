@@ -32,11 +32,28 @@ export function shuffled(array) {
 }
 
 // pad a string to a required length using spaces
-export function pad(str, needed) {
+export function pad(str, needed, char = ' ') {
   if (str.length === needed) return str;
-  return (str + repeat(' ', needed - str.length).join(''));
+  return (str + repeat(char, needed - str.length).join(''));
 }
 
 export function merge(base, added) {
   return Object.assign({}, base, added);
+}
+
+export function map2d(grid, transformFn) {
+  const result = [];
+  for (let r = 0; r < grid.length; r++) {
+    result[r] = [];
+    for (let c = 0; c < grid[r].length; c++) {
+      result[r][c] = transformFn(grid[r][c], r, c);
+    }
+  }
+  return result;
+}
+
+// returns longest string or array in a list
+export function longest(list) {
+  return list.slice()
+    .sort((a, b) => b.length - a.length)[0];
 }

@@ -19,7 +19,7 @@ import {
   SPYMASTER
 } from '../constants';
 
-import { fiddyFiddy, repeat, shuffled, pad } from '../utils';
+import { fiddyFiddy, repeat, shuffled, pad, map2d } from '../utils';
 
 /**
  * cards are stored in JSON as tuples of [String, String]
@@ -119,9 +119,8 @@ export default class Board {
     return this.picks[row][col];
   }
 
-  inspect() {
-    return [`\n${GUESSER} sees:`, this.formatForRole(GUESSER),
-            `\n${SPYMASTER} sees:`, this.formatForRole(SPYMASTER)].join("\n");
+  getWords() {
+    return this.wordsInBoard.slice();
   }
 
   getDepleted() {
@@ -130,52 +129,8 @@ export default class Board {
 
   // map over every cell in this.words.grid with cellFormatFn
   // join everything all the way around and make a nice grid of it
-  format(cellFormatFn) {
-    const grid = clone(this.words.grid);
-    for (let r = 0; r < grid.length; r++) {
-      for (let c = 0; c < grid.length; c++) {
-        grid[r][c] = cellFormatFn(grid[r][c], r, c);
-      }
-    }
-
-    return grid.map(row => row.join(' ')).join("\n")
-  }
-
-  format2(getColorizer) {
-    const maxLenWord = longest(this.wordsInBoard);
-    const maxLen = maxLenWord.length;
-
-    const formatter = (word) => {
-      const padded = pad(word, maxLen);
-      const colorizer = getColorizer(word);
-      return colorizer(padded);
-    }
-
-    return this.format(formatter)
-  }
-
-  formatForRole(role) {
-    let getColorizer;
-    if (role === GUESSER) getColorizer = x => this.guesserColorizerForWord(x)
-    if (role === SPYMASTER) getColorizer = x => this.spymasterColorizerForWord(x)
-    return this.format2(getColorizer);
-  }
-
-  spymasterColorizerForWord(word) {
-    const team = this.teamOf(word);
-    const chosen = this.statusOf(word) && true;
-    let colorizer = x => x;
-    if (team === BLUE) colorizer = chosen ? chalk.bold.white.bgBlue : chalk.blue;
-    if (team === RED) colorizer = chosen ? chalk.bold.white.bgRed : chalk.red;
-    if (team === KILL) colorizer = chosen ? chalk.bold.white.bgBlack : chalk.black;
-    if (team === NEUTRAL && chosen) colorizer = chalk.bold.white.bgYellow;
-    return colorizer;
-  }
-
-  guesserColorizerForWord(word) {
-    const chosen = this.statusOf(word) && true;
-    if (chosen) return this.spymasterColorizerForWord(word);
-    return x => x;
+  mapWordGrid(transformFn) {
+    return map2d(this.words.grid, transformFn)
   }
 
   // TODO: be acutally immutable instead of half-assing it in Game ruducer
@@ -202,13 +157,4 @@ export default class Board {
     // meddle with counters?
     this.remaining[team] -= 1;
   }
-}
-
-function longest(list) {
-  return list.slice()
-    .sort((a, b) => b.length - a.length)[0];
-}
-
-function clone(obj) {
-  return JSON.parse(JSON.stringify(obj));
 }
