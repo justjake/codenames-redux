@@ -1,45 +1,10 @@
-// player roles - do we even need this?
-const GUESSER = 'guesser';
-const SPYMASTER = 'spymaster';
+import { RED, BLUE, KILL,
+         GIVE_CLUE, GUESS, SKIP } from '../constants';
+import { merge, nextTeam } from '../utils';
+import { Board } from '../models/Board';
+import { includes } from 'lodash';
 
-// turn phases
-const GIVE_CLUE = 'give clue';
-const GUESS = 'guess';
-
-const SKIP = 'skip';
-const BY_GODS_MANDATE = 'because i say so';
-
-import { RED, BLUE, KILL } from './constants';
-import { merge } from './utils';
-import { Board } from './board';
-
-
-
-// action creators
-function giveClue(player, clue) {
-  return {
-    type: GIVE_CLUE,
-    player,
-    clue,
-  };
-}
-
-function guess(player, word) {
-  return {
-    type: GUESS,
-    player,
-    word: normalizeWord(word)
-  };
-}
-
-function skip(player) {
-  return {
-    type: SKIP,
-    player,
-  }
-}
-
-function initialState(board) {
+export function initialState(board) {
   return {
     phase: GIVE_CLUE,
     remainingGuesses: null,
@@ -54,20 +19,17 @@ function initialState(board) {
 
 // TODO: HANDLE TIMEOUTS WITH A TIMER_TICK ACTION
 
-function nextTeam(team) {
-  if (team === RED) return BLUE;
-  if (team === BLUE) return RED;
-  throw new Error(`wat: should not have unknown team ${team}`);
-}
-
 function nextPhase(phase) {
   if (phase === GIVE_CLUE) return GUESS;
   if (phase === GUESS) return GIVE_CLUE;
   throw new Error(`wat: should not have unknown phase ${phase}`);
 }
 
+const KNOWN_ACTIONS = [GIVE_CLUE, GUESS, SKIP];
+
 export default function gameReducer(state, action) {
   // reject invalid actions
+  if (!includes(KNOWN_ACTIONS, action.type)) return state;
   if (action.player.team !== state.team) return state;
 
   // handle skips - increment the phase and team, and make sure we don't have any guesses
@@ -126,7 +88,7 @@ export default function gameReducer(state, action) {
 // for now no Redux is involved
 
 function clueHistoryReducer(clueHistory, action) {
-  if (action.type !=== GIVE_CLUE) return clueHistory;
+  if (action.type !== GIVE_CLUE) return clueHistory;
   return [...clueHistory, {team: action.player.team, clue: action.clue}];
 }
 

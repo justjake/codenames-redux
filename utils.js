@@ -1,5 +1,7 @@
 // on a plane with no internet, so no utils from the interbutts
 
+import { RED, BLUE } from './constants';
+
 // a coin flip
 export function fiddyFiddy() {
   return Math.random() > 0.5;
@@ -56,4 +58,10 @@ export function map2d(grid, transformFn) {
 export function longest(list) {
   return list.slice()
     .sort((a, b) => b.length - a.length)[0];
+}
+
+export function nextTeam(team) {
+  if (team === RED) return BLUE;
+  if (team === BLUE) return RED;
+  throw new Error(`wat: should not have unknown team ${team}`);
 }
