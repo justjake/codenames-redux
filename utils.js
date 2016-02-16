@@ -1,6 +1,6 @@
 // on a plane with no internet, so no utils from the interbutts
 
-import { RED, BLUE } from './constants';
+import { RED, BLUE, SPYMASTER, GUESSER } from './constants';
 
 // a coin flip
 export function fiddyFiddy() {
@@ -64,4 +64,21 @@ export function nextTeam(team) {
   if (team === RED) return BLUE;
   if (team === BLUE) return RED;
   throw new Error(`wat: should not have unknown team ${team}`);
+}
+
+
+export function spymastersOf(list) {
+  return list.filter(player => player.role === SPYMASTER);
+}
+
+export function guessersOf(list) {
+  return list.filter(player => player.role === GUESSER);
+}
+
+export function ofTeam(list, team) {
+  return list.filter(player => player.team === team);
+}
+
+export function playerByName(list, name) {
+  return list.filter(player => player.name === name)[0];
 }

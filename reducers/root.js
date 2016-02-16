@@ -1,6 +1,12 @@
 import gameReducer, { initialState as gameInitialState } from './game';
 import { SPYMASTER, GUESSER, RESET, START_NEW_GAME, ELECT_SPYMASTER, REGISTER_PLAYER, RED, BLUE } from '../constants';
-import { merge, nextTeam } from '../utils';
+import {
+  merge, nextTeam,
+  spymastersOf,
+  guessersOf,
+  ofTeam,
+  playerByName,
+} from '../utils';
 import ExtendableError from 'es6-error';
 import Board from '../models/Board';
 import Player from '../models/Player';
@@ -52,31 +58,11 @@ export default function rootReducer(state = initialState(), action) {
   default:
     // handle other actions with gameReducer
     const newGame = gameReducer(state.game, action);
-    if (newGame !== state.game) return merge(stage, {game: newGame});
+    if (newGame !== state.game) return merge(state, {game: newGame});
     return state;
   }
 }
 
 function playerToRole(player, role) {
   return new Player(player.team, role, player.name);
-}
-
-function objToList(obj) {
-  return Object.keys(obj).map(key => obj[key])
-}
-
-function spymastersOf(list) {
-  return list.filter(player => player.role === SPYMASTER);
-}
-
-function guessersOf(list) {
-  return list.filter(player => player.role === GUESSER);
-}
-
-function ofTeam(list, team) {
-  return list.filter(player => player.team === team);
-}
-
-function playerByName(list, name) {
-  return list.filter(player => player.name === name)[0];
 }

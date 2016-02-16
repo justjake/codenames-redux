@@ -1,11 +1,93 @@
 import Board from './models/Board';
-import { RED, BLUE, KILL } from './constants';
+import Clue from './models/Clue';
+import { RED, BLUE, KILL,
+         GIVE_CLUE, GUESS, SKIP, START_NEW_GAME,
+       } from './constants';
 import renderBoard from './views/renderBoard';
+// TODO rename this file and render function
+import renderEverything from './views/renderGame';
 import { createStore } from 'redux';
 import rootReducer from './reducers/root';
 import * as actions from './actions';
 import sourceMapSupport from 'source-map-support';
-//sourceMapSupport.install();
+import readline from 'readline';
+import { playerByName } from './utils';
+import {
+  find,
+  startsWith,
+} from 'lodash';
+import { UnknownWordError } from './errors';
+
+function enableReadline(store) {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+
+  const knownCommands = [GIVE_CLUE, GUESS, SKIP, START_NEW_GAME];
+  console.log(`Commands:`, JSON.stringify(knownCommands));
+
+  rl.on('line', (line) => {
+    const state = store.getState();
+    const currentPlayerName = playerNameForState(state.game);
+    const currentPlayer = playerByName(state.players, currentPlayerName);
+    const { match, rest } = startsWithSplit(line, knownCommands);
+
+    if (!match) {
+      console.log('-- i dun understand');
+      return;
+    }
+
+    //console.log(`-- todo: evaluate command "${match}" with args "${rest}"`);
+    let action;
+    switch (match) {
+    case SKIP:
+      store.dispatch(actions.skip(currentPlayer));
+      break;
+    case GIVE_CLUE:
+      const [word, num] = rest.split(/\s+/);
+      const clue = new Clue(word, parseInt(num, 10));
+      action = actions.giveClue(currentPlayer, clue);
+      break;
+    case GUESS:
+      const [worder] = rest.split(/\s+/);
+      action = actions.guess(currentPlayer, worder);
+      break;
+    case START_NEW_GAME:
+      console.log('whoa nelly, you resettin the gamer');
+      action = actions.startNewGame(currentPlayer);
+      break;
+    }
+
+    try {
+      store.dispatch(action);
+    } catch (err) {
+      if (err instanceof UnknownWordError) {
+        console.log(`you guessed an unknown word ${err.message}. Please try again.`);
+      } else {
+        throw err;
+      }
+    }
+
+    const newState = store.getState();
+
+    if (state === newState) {
+      console.log(`hmm, nothing changed. Perhaps your command is invalid in this state?\n`);
+    }
+
+    console.log(`Commands:`, JSON.stringify(knownCommands));
+    console.log(renderEverything(store.getState()));
+  });
+
+}
+
+// return an object containing { match, rest } of the first memeber of array
+// that `str` starts with
+function startsWithSplit(str, array) {
+  const match = find(array, el => startsWith(str, el));
+  if (!match) return { match: false, rest: false }
+  return { match, rest: str.replace(match, '').trim() };
+}
 
 function testBoard() {
   const board = new Board();
@@ -28,6 +110,18 @@ const RED_SPYMASTER = 'red spymaster';
 const BLUE_SPYMASTER = 'blue spymaster';
 const RED_GUESSER = 'red guessers';
 const BLUE_GUESSER = 'blue guessers';
+
+function playerNameForState(game) {
+  if (game.team === BLUE) {
+    if (game.phase === GIVE_CLUE) return BLUE_SPYMASTER;
+    return BLUE_GUESSER;
+  }
+  if (game.team === RED) {
+    if (game.phase === GIVE_CLUE) return RED_SPYMASTER;
+    return RED_GUESSER;
+  }
+  throw new Error('wat');
+}
 
 function playerMap(store) {
   const state = store.getState();
@@ -54,8 +148,12 @@ function main() {
   store.dispatch(actions.startNewGame(playerMap[RED_SPYMASTER]))
 
   // print the baord
+  const state = store.getState();
+  console.log(renderEverything(state));
   const board = store.getState().game.board;
   viewBoard(board)
+
+  enableReadline(store);
 }
 
 main();

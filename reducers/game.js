@@ -1,8 +1,12 @@
 import { RED, BLUE, KILL,
-         GIVE_CLUE, GUESS, SKIP } from '../constants';
+         GIVE_CLUE, GUESS, SKIP,
+         SPYMASTER, GUESSER
+       } from '../constants';
 import { merge, nextTeam } from '../utils';
 import { Board } from '../models/Board';
 import { includes } from 'lodash';
+import { UnknownWordError } from '../errors';
+
 
 export function initialState(board) {
   return {
@@ -91,9 +95,3 @@ function clueHistoryReducer(clueHistory, action) {
   if (action.type !== GIVE_CLUE) return clueHistory;
   return [...clueHistory, {team: action.player.team, clue: action.clue}];
 }
-
-function normalizeWord(word) {
-  return word.trim().toUpperCase();
-}
-
-class UnknownWordError extends Error {};

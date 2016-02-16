@@ -62,3 +62,7 @@ export function reset(player) {
     player
   }
 }
+
+function normalizeWord(word) {
+  return word.trim().toUpperCase();
+}

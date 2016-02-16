@@ -33,3 +33,5 @@ export const REGISTER_PLAYER = 'register player';
 export const ELECT_SPYMASTER = 'elect player as spymaster';
 export const START_NEW_GAME = 'start new game';
 export const RESET = 'fuck it we out';
+
+// game constants
