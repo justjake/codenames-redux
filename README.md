@@ -1,18 +1,22 @@
 # codenames-redux
 
-ok, a redux learning project that implements the great boardgame Codenames. Very fun IRL, let's see how far we can go with redux.
+ok, a redux learning project that implements the great boardgame Codenames. Very
+fun IRL, let's see how far we can go with redux.
 
-Slack bot?
+So far, there is a barebones, terminal-centric UI for entering commands, and a
+simple HTTP server for viewing Spymaster and Guesser versions of the current
+game.
 
-Web UI?
+## Usage
 
-CURSES UI????? amazing.
+run `npm test` to start the game. Type commands like `give clue foo 2` to give
+`foo 2` as a clue. Visit localhost:1337 for the guesser view. I recommend
+putting this on a second computer and letting the guessers stare at it.
 
-## what it does so far
-
-- generate valid boards
-- display board for guessers (no colors revealed)
-- display board for spymasters (words color-coded instead of using a key)
+The main computer should be used for the spymasters. Put a `watch curl
+localhost:1337/spymaster` in one terminal, and leave the game process with the
+readline interface in another terminal. Have the guessers relay their guesses to
+the spymasters, who do all the computer input.
 
 Here's how it looks:
 
