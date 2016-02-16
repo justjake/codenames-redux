@@ -39,7 +39,7 @@ function enableReadline(store) {
   });
 
   function promptForState(state) {
-    return 'type it brah => ';
+    return `${playerNameForState(state.game)} => `;
     return state.game.phase;
   }
 
@@ -49,7 +49,6 @@ function enableReadline(store) {
 
   store.subscribe(() => setPrompt());
   setPrompt();
-
 
   const knownCommands = [GIVE_CLUE, GUESS, SKIP, START_NEW_GAME];
   console.log(`Commands:`, JSON.stringify(knownCommands));

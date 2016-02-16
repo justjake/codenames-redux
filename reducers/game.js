@@ -39,7 +39,7 @@ export default function gameReducer(state, action) {
   // handle skips - increment the phase and team, and make sure we don't have any guesses
   if (action.type === SKIP) return merge(state, {
     phase: nextPhase(state.phase),
-    team: nextTeam(state.team),
+    team: nextPhase(state.phase) === GIVE_CLUE ? nextTeam(state.team) : state.team,
     remainingGuesses: null,
   });
 
