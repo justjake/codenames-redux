@@ -89,8 +89,6 @@ export default function gameReducer(state, action) {
   throw new Error(`oops: should not be able to reach this (action.type: ${action.type})`);
 }
 
-// for now no Redux is involved
-
 function clueHistoryReducer(clueHistory, action) {
   if (action.type !== GIVE_CLUE) return clueHistory;
   return [...clueHistory, {team: action.player.team, clue: action.clue}];

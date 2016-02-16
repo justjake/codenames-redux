@@ -17,6 +17,20 @@ import {
   startsWith,
 } from 'lodash';
 import { UnknownWordError } from './errors';
+import express from 'express';
+
+function enableServer(store, port = 1337) {
+  const app = express();
+  app.get('/spymaster', (req, res) => {
+    res.send(renderEverything(store.getState(), true));
+  });
+
+  app.get('/', (req, res) => {
+    res.send(renderEverything(store.getState()));
+  });
+
+  app.listen(port);
+}
 
 function enableReadline(store) {
   const rl = readline.createInterface({
@@ -24,8 +38,23 @@ function enableReadline(store) {
     output: process.stdout,
   });
 
+  function promptForState(state) {
+    return 'type it brah => ';
+    return state.game.phase;
+  }
+
+  function setPrompt() {
+    rl.setPrompt(promptForState(store.getState()));
+  }
+
+  store.subscribe(() => setPrompt());
+  setPrompt();
+
+
   const knownCommands = [GIVE_CLUE, GUESS, SKIP, START_NEW_GAME];
   console.log(`Commands:`, JSON.stringify(knownCommands));
+
+  rl.prompt();
 
   rl.on('line', (line) => {
     const state = store.getState();
@@ -35,6 +64,7 @@ function enableReadline(store) {
 
     if (!match) {
       console.log('-- i dun understand');
+      rl.prompt();
       return;
     }
 
@@ -42,7 +72,7 @@ function enableReadline(store) {
     let action;
     switch (match) {
     case SKIP:
-      store.dispatch(actions.skip(currentPlayer));
+      action = actions.skip(currentPlayer);
       break;
     case GIVE_CLUE:
       const [word, num] = rest.split(/\s+/);
@@ -77,8 +107,9 @@ function enableReadline(store) {
 
     console.log(`Commands:`, JSON.stringify(knownCommands));
     console.log(renderEverything(store.getState()));
-  });
 
+    rl.prompt();
+  });
 }
 
 // return an object containing { match, rest } of the first memeber of array
@@ -154,6 +185,7 @@ function main() {
   viewBoard(board)
 
   enableReadline(store);
+  enableServer(store);
 }
 
 main();

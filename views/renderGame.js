@@ -18,8 +18,14 @@ export default function renderEverything(rootState, showUnguessed) {
     prompt = `spymaster "${spymaster.name}" should give a clue to the ${game.team} team.`;
   }
   if (game.phase === GUESS) {
-    const clue = game.clueHistory[game.clueHistory.length - 1]
+    const clue = latestClue(game.clueHistory);
     prompt = `players on the ${game.team} should guess a word! They have ${game.remainingGuesses} left for the clue ${clue ? renderClue(clue) : 'ZOMFG NO CLUE GIVEN???'}`
   }
-  return `${history}\n\n${prompt}\n\n${board}`;
+  return `${history}\n\n${prompt}\n\n${board}\n`;
+}
+
+function latestClue(clueHistory) {
+  const last = clueHistory[clueHistory.length - 1];
+  if (!last) return null;
+  return last.clue;
 }
