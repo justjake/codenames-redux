@@ -19,6 +19,13 @@ import {
 import { UnknownWordError } from './errors';
 import express from 'express';
 
+// these are used as player names for the required 4 players to play a simple
+// game via the readline UI.
+const RED_SPYMASTER = 'red spymaster';
+const BLUE_SPYMASTER = 'blue spymaster';
+const RED_GUESSER = 'red guessers';
+const BLUE_GUESSER = 'blue guessers';
+
 function enableServer(store, port = 1337) {
   const app = express();
   app.get('/spymaster', (req, res) => {
@@ -29,30 +36,44 @@ function enableServer(store, port = 1337) {
     res.send(renderEverything(store.getState()));
   });
 
+  app.get('/api/v0/all', (req, res) => {
+    res.json(store.getState())
+  });
+
   app.listen(port);
 }
 
 function enableReadline(store) {
+  const knownCommands = [GIVE_CLUE, GUESS, SKIP, START_NEW_GAME];
+
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
   });
 
   function promptForState(state) {
-    return `${playerNameForState(state.game)} => `;
-    return state.game.phase;
+    const cmds = `known commands: ${JSON.stringify(knownCommands)}`;
+    return `${cmds}\n${playerNameForState(state.game)} => `;
   }
 
   function setPrompt() {
     rl.setPrompt(promptForState(store.getState()));
   }
 
+  function say(something) {
+    const text = something.split("\n").map(line => line ? `<-- ${line}` : '').join('\n');
+    console.log(text);
+  }
+
+  function render() {
+    console.log(renderEverything(store.getState()));
+    // TODO: put rl.prompt() in here?
+  }
+
+  // configure prompt
   store.subscribe(() => setPrompt());
   setPrompt();
-
-  const knownCommands = [GIVE_CLUE, GUESS, SKIP, START_NEW_GAME];
-  console.log(`Commands:`, JSON.stringify(knownCommands));
-
+  render();
   rl.prompt();
 
   rl.on('line', (line) => {
@@ -62,19 +83,26 @@ function enableReadline(store) {
     const { match, rest } = startsWithSplit(line, knownCommands);
 
     if (!match) {
-      console.log('-- i dun understand');
+      say(`I don't understand your command ${JSON.stringify(line)}`);
+      render();
       rl.prompt();
       return;
     }
 
-    //console.log(`-- todo: evaluate command "${match}" with args "${rest}"`);
+    // produce an action from the typed line
     let action;
     switch (match) {
     case SKIP:
       action = actions.skip(currentPlayer);
       break;
     case GIVE_CLUE:
-      const [word, num] = rest.split(/\s+/);
+      const [word, numToParse] = rest.split(/\s+/);
+      const num = parseInt(num, 10);
+      if (Number.isNaN(num)) {
+        say(`Clues must be ONE word, then ONE number, like "hello 3". ${numToParse} is not a number.`);
+        action = { type: 'NOTHING' };
+        break;
+      }
       const clue = new Clue(word, parseInt(num, 10));
       action = actions.giveClue(currentPlayer, clue);
       break;
@@ -83,7 +111,7 @@ function enableReadline(store) {
       action = actions.guess(currentPlayer, worder);
       break;
     case START_NEW_GAME:
-      console.log('whoa nelly, you resettin the gamer');
+      say('whoa nelly, you resettin the gamer');
       action = actions.startNewGame(currentPlayer);
       break;
     }
@@ -92,21 +120,18 @@ function enableReadline(store) {
       store.dispatch(action);
     } catch (err) {
       if (err instanceof UnknownWordError) {
-        console.log(`you guessed an unknown word ${err.message}. Please try again.`);
+        say(`you guessed an unknown word ${err.message}. Please try again.`);
       } else {
         throw err;
       }
     }
 
+    // re-render
+    render();
     const newState = store.getState();
-
     if (state === newState) {
-      console.log(`hmm, nothing changed. Perhaps your command is invalid in this state?\n`);
+      say(`hmm, nothing changed after running your command. Perhaps your command is invalid in this state?\n`);
     }
-
-    console.log(`Commands:`, JSON.stringify(knownCommands));
-    console.log(renderEverything(store.getState()));
-
     rl.prompt();
   });
 }
@@ -119,28 +144,6 @@ function startsWithSplit(str, array) {
   return { match, rest: str.replace(match, '').trim() };
 }
 
-function testBoard() {
-  const board = new Board();
-  board.pick(board.wordsInBoard[0]);
-  board.pick(board.wordsInBoard[1]);
-  const kill = board.wordsInBoard.filter(w => board.teamOf(w) === KILL)[0]
-  board.pick(kill);
-  viewBoard(board);
-}
-
-function viewBoard(board) {
-  console.log('board - what guessers see');
-  console.log(renderBoard(board));
-  console.log('board - what spymasters see (all words fully colorized)');
-  console.log(renderBoard(board, true));
-  console.log(board.getDepleted());
-}
-
-const RED_SPYMASTER = 'red spymaster';
-const BLUE_SPYMASTER = 'blue spymaster';
-const RED_GUESSER = 'red guessers';
-const BLUE_GUESSER = 'blue guessers';
-
 function playerNameForState(game) {
   if (game.team === BLUE) {
     if (game.phase === GIVE_CLUE) return BLUE_SPYMASTER;
@@ -150,7 +153,7 @@ function playerNameForState(game) {
     if (game.phase === GIVE_CLUE) return RED_SPYMASTER;
     return RED_GUESSER;
   }
-  throw new Error('wat');
+  throw new Error(`unknown phase ${JSON.stringify(game.phase)}`);
 }
 
 function playerMap(store) {
@@ -172,17 +175,10 @@ function main() {
   store.dispatch(actions.electSpymaster(RED_SPYMASTER));
   store.dispatch(actions.electSpymaster(BLUE_SPYMASTER));
 
-  const players = playerMap(store);
-
-  // start game
+  // start the first game right away
   store.dispatch(actions.startNewGame(playerMap[RED_SPYMASTER]))
 
-  // print the baord
-  const state = store.getState();
-  console.log(renderEverything(state));
-  const board = store.getState().game.board;
-  viewBoard(board)
-
+  // enable user interfaces
   enableReadline(store);
   enableServer(store);
 }

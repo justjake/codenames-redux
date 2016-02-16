@@ -74,6 +74,12 @@ export default class Board {
     this.init(words, redStarting);
   }
 
+  static fromData(data) {
+    const board = new Board(null, null, false);
+    Object.assign(board, data);
+    return board;
+  }
+
   init(words, redStarting) {
     // record the words this game was created with so we can get new words next time
     this.wordsInBoard = words || pickWords(DECK, SQUARES);
@@ -135,10 +141,8 @@ export default class Board {
 
   // TODO: be acutally immutable instead of half-assing it in Game ruducer
   dup() {
-    const dup = new Board(null, null, false);
-    const datas = JSON.parse(JSON.stringify(this));
-    Object.assign(dup, datas);
-    return dup;
+    const data = JSON.parse(JSON.stringify(this));
+    return Board.fromData(data);
   }
 
   // omg mutations
