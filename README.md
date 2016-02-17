@@ -20,4 +20,4 @@ the spymasters, who do all the computer input.
 
 Here's how it looks:
 
-![generated board](http://take.ms/22NfJ)
+![playing the game](http://take.ms/8iNjn)
