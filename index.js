@@ -19,6 +19,7 @@ import {
 import { UnknownWordError } from './errors';
 import express from 'express';
 import LobbyProxy from './server/LobbyProxy';
+import { startServer } from './server';
 
 // these are used as player names for the required 4 players to play a simple
 // game via the readline UI.
@@ -26,23 +27,6 @@ const RED_SPYMASTER = 'red spymaster';
 const BLUE_SPYMASTER = 'blue spymaster';
 const RED_GUESSER = 'red guessers';
 const BLUE_GUESSER = 'blue guessers';
-
-function enableServer(store, port = 1337) {
-  const app = express();
-  app.get('/spymaster', (req, res) => {
-    res.send(renderEverything(store.getState(), true));
-  });
-
-  app.get('/', (req, res) => {
-    res.send(renderEverything(store.getState()));
-  });
-
-  app.get('/api/v0/all', (req, res) => {
-    res.json(store.getState())
-  });
-
-  app.listen(port);
-}
 
 function enableReadline(store) {
   const knownCommands = [GIVE_CLUE, GUESS, SKIP, START_NEW_GAME];
@@ -200,7 +184,7 @@ function main() {
 
   // enable user interfaces
   enableReadline(store);
-  enableServer(store);
+  startServer(store);
 }
 
 main();

@@ -14,7 +14,9 @@
     "es6-error": "2.0.2",
     "express": "4.13.4",
     "lodash": "4.3.0",
+    "node-uuid": "1.4.7",
     "redux": "3.3.1",
+    "socket.io": "1.4.5",
     "source-map-support": "0.4.0"
   }
 }
