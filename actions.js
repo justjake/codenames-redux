@@ -90,6 +90,7 @@ export function destroyLobby(lobbyId) {
 export function lobbyScopedAction(lobbyId, action) {
   return {
     type: LOBBY_SCOPED_ACTION,
+    lobbyId,
     action,
   };
 }

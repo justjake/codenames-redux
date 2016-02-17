@@ -18,7 +18,7 @@ class WrongNumberOfGuessers extends ExtendableError {}
 class NameConflict extends ExtendableError {}
 class UnknownPlayerError extends ExtendableError {}
 
-function initialState() {
+export function initialState() {
   return {
     players: [],
     game: null,

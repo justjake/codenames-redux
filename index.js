@@ -7,7 +7,7 @@ import renderBoard from './views/renderBoard';
 // TODO rename this file and render function
 import renderEverything from './views/renderGame';
 import { createStore } from 'redux';
-import rootReducer from './reducers/lobby';
+import rootReducer from './reducers/root2';
 import * as actions from './actions';
 import sourceMapSupport from 'source-map-support';
 import readline from 'readline';
@@ -18,6 +18,7 @@ import {
 } from 'lodash';
 import { UnknownWordError } from './errors';
 import express from 'express';
+import LobbyProxy from './server/LobbyProxy';
 
 // these are used as player names for the required 4 players to play a simple
 // game via the readline UI.
@@ -95,21 +96,24 @@ function enableReadline(store) {
     case SKIP:
       action = actions.skip(currentPlayer);
       break;
+
     case GIVE_CLUE:
       const [word, numToParse] = rest.split(/\s+/);
-      const num = parseInt(num, 10);
+      const num = parseInt(numToParse, 10);
       if (Number.isNaN(num)) {
-        say(`Clues must be ONE word, then ONE number, like "hello 3". ${numToParse} is not a number.`);
+        say(`Clues must be ONE word, then ONE number, like "hello 3". ${JSON.stringify(numToParse)} is not a number. (${num})`);
         action = { type: 'NOTHING' };
         break;
       }
       const clue = new Clue(word, parseInt(num, 10));
       action = actions.giveClue(currentPlayer, clue);
       break;
+
     case GUESS:
       const [worder] = rest.split(/\s+/);
       action = actions.guess(currentPlayer, worder);
       break;
+
     case START_NEW_GAME:
       say('whoa nelly, you resettin the gamer');
       action = actions.startNewGame(currentPlayer);
@@ -163,8 +167,22 @@ function playerMap(store) {
   return map;
 }
 
+function findLobbyId(state, ticket) {
+  return state.ticketsToIds[ticket];
+}
+
 function main() {
-  const store = createStore(rootReducer);
+  const ticket = 'i want a lobby please';
+  const rootStore = createStore(rootReducer);
+  rootStore.dispatch(actions.createLobby(ticket));
+  const lobbyId = rootStore.getState().ticketsToIds[ticket];
+  if (!ticket) throw new Error(`should have an id for ticket ${ticket} but have ${lobbyId}`);
+
+  console.log(rootStore.getState(), lobbyId);
+
+  // this is a proxy that dispatches scoped actions for us :)
+  const store = new LobbyProxy(lobbyId, rootStore);
+
   // create all required players
   store.dispatch(actions.registerPlayer(RED_SPYMASTER, RED));
   store.dispatch(actions.registerPlayer(BLUE_SPYMASTER, BLUE));
