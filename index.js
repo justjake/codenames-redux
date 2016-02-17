@@ -7,7 +7,7 @@ import renderBoard from './views/renderBoard';
 // TODO rename this file and render function
 import renderEverything from './views/renderGame';
 import { createStore } from 'redux';
-import rootReducer from './reducers/root';
+import rootReducer from './reducers/lobby';
 import * as actions from './actions';
 import sourceMapSupport from 'source-map-support';
 import readline from 'readline';
@@ -175,8 +175,10 @@ function main() {
   store.dispatch(actions.electSpymaster(RED_SPYMASTER));
   store.dispatch(actions.electSpymaster(BLUE_SPYMASTER));
 
+  const players = playerMap(store)
+
   // start the first game right away
-  store.dispatch(actions.startNewGame(playerMap[RED_SPYMASTER]))
+  store.dispatch(actions.startNewGame(players[RED_SPYMASTER]))
 
   // enable user interfaces
   enableReadline(store);

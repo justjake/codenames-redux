@@ -1,5 +1,6 @@
 import gameReducer, { initialState as gameInitialState } from './game';
-import { SPYMASTER, GUESSER, RESET, START_NEW_GAME, ELECT_SPYMASTER, REGISTER_PLAYER, RED, BLUE } from '../constants';
+import { SPYMASTER, GUESSER, RESET, START_NEW_GAME, ELECT_SPYMASTER,
+         REGISTER_PLAYER, REMOVE_PLAYER, RED, BLUE } from '../constants';
 import {
   merge, nextTeam,
   spymastersOf,
@@ -11,12 +12,11 @@ import ExtendableError from 'es6-error';
 import Board from '../models/Board';
 import Player from '../models/Player';
 
-
 // errors
 class WrongNumberOfSpymasters extends ExtendableError {}
 class WrongNumberOfGuessers extends ExtendableError {}
 class NameConflict extends ExtendableError {}
-
+class UnknownPlayerError extends ExtendableError {}
 
 function initialState() {
   return {
@@ -25,11 +25,16 @@ function initialState() {
   }
 }
 
-export default function rootReducer(state = initialState(), action) {
+/**
+ * the lobby manages the group of people who want to play a game together
+ */
+export default function lobbyReducer(state = initialState(), action) {
   console.log('ACTION', action);
   switch (action.type) {
+
   case RESET:
     return initialState();
+
   case START_NEW_GAME:
     const teams = [RED, BLUE];
     // make sure we have the right sorts of players
@@ -40,6 +45,7 @@ export default function rootReducer(state = initialState(), action) {
     });
     // ok seems legit
     return merge(state, {game: gameInitialState(new Board())});
+
   case ELECT_SPYMASTER:
     // create version of this player who is a spymaster
     const newSpymaster = playerToRole(playerByName(state.players, action.name), SPYMASTER);
@@ -50,11 +56,16 @@ export default function rootReducer(state = initialState(), action) {
     team.push(newSpymaster);
     const otherTeam = ofTeam(state.players, nextTeam(newSpymaster.team))
     return merge(state, {players: team.concat(otherTeam)});
+
   case REGISTER_PLAYER:
     // create a new player and put it in the players list
     if (playerByName(state.players, action.name)) throw new NameConflict(action.name);
     const player = new Player(action.team, GUESSER, action.name);
     return merge(state, {players: state.players.concat(player)});
+
+  case REMOVE_PLAYER:
+    if (!playerByName(action.name)) throw new UnknownPlayerError(action.name);
+
   default:
     // handle other actions with gameReducer
     const newGame = gameReducer(state.game, action);

@@ -28,10 +28,14 @@ export const GUESS = 'guess';
 
 export const SKIP = 'skip';
 
-// root constants
+// lobby constants
 export const REGISTER_PLAYER = 'register player';
 export const ELECT_SPYMASTER = 'elect player as spymaster';
 export const START_NEW_GAME = 'start new game';
 export const RESET = 'fuck it we out';
+export const REMOVE_PLAYER = 'remove player'
 
-// game constants
+// game management constatnts
+export const CREATE_LOBBY = 'create lobby';
+export const DESTROY_LOBBY = 'destroy lobby';
+export const LOBBY_SCOPED_ACTION = 'in lobby';

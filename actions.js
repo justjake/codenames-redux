@@ -6,7 +6,11 @@ import {
   REGISTER_PLAYER,
   ELECT_SPYMASTER,
   START_NEW_GAME,
-  RESET
+  RESET,
+
+  CREATE_LOBBY,
+  DESTROY_LOBBY,
+  LOBBY_SCOPED_ACTION
 } from './constants';
 
 // game action creators
@@ -65,4 +69,27 @@ export function reset(player) {
 
 function normalizeWord(word) {
   return word.trim().toUpperCase();
+}
+
+export function createLobby(ticket) {
+  return {
+    type: CREATE_LOBBY,
+    // the lobby will be created with a ticket so the caller knows which lobby
+    // is theirs. May be hidden as an implementation detail.
+    ticket,
+  };
+}
+
+export function destroyLobby(lobbyId) {
+  return {
+    type: DESTROY_LOBBY,
+    lobbyId,
+  };
+}
+
+export function lobbyScopedAction(lobbyId, action) {
+  return {
+    type: LOBBY_SCOPED_ACTION,
+    action,
+  };
 }
