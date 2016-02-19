@@ -19,7 +19,7 @@ import {
 import { UnknownWordError } from './errors';
 import express from 'express';
 import LobbyProxy from './server/LobbyProxy';
-import { startServer } from './server';
+//import { startServer } from './server';
 
 // these are used as player names for the required 4 players to play a simple
 // game via the readline UI.
@@ -184,7 +184,8 @@ function main() {
 
   // enable user interfaces
   enableReadline(store);
-  startServer(store);
+  enableServer(store);
+  //startServer(store);
 }
 
 main();

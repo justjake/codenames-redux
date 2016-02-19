@@ -3,7 +3,8 @@ import uuid from 'node-uuid';
 import { playerByName } from '../utils';
 import socketIO from 'socket.io';
 import http from 'http';
-import { JOIN_LOBBY, LOBBY_UPDATE } from '../constants'
+import { JOIN_LOBBY, ACTION_FROM_SERVER } from '../constants';
+import { lobbyUpdate, joinedLobby } from './actions';
 
 function getLobbyById(store, lobbyId) {
   const state = store.getState();
@@ -37,7 +38,8 @@ function makeExpressApp(store) {
 
   // get the full state of a lobby, including any game in progress
   api.get('/lobby/:id', (req, res) => {
-    const lobby = getLobbyById(store, req.param.id);
+    const state = store.getState();
+    const lobby = state.lobbies[req.param.id];
     res.json({
       lobbyId: req.param.id,
       lobby,
@@ -50,7 +52,7 @@ function makeExpressApp(store) {
     const lobby = new LobbyProxy(req.param.id, store);
     lobby.registerPlayer(req.param.name, req.param.team);
     const state = lobby.getState();
-    const player = playerByName(state);
+    const player = playerByName(state.players);
     res.join({
       player,
       lobby: state,
@@ -69,8 +71,9 @@ function makeSocketApp(httpServer, store) {
 
   // allow sockets to join lobbies with the JOIN_LOBBY command
   io.on('connection', socket => {
-    socket.on(JOIN_LOBBY, (lobbyId) => {
+    socket.on(JOIN_LOBBY, ({lobbyId}) => {
       socket.join(lobbyId);
+      socket.send(ACTION_FROM_SERVER, joinedLobby(lobbyId));
     });
   });
 
@@ -83,7 +86,7 @@ function makeSocketApp(httpServer, store) {
       const oldLobby = prevState.lobbies[lobbyId];
       const newLobby = state.lobbies[lobbyId];
       if (oldLobby === newLobby) return;
-      io.to(lobbyId).emit(LOBBY_UPDATE, newLobby);
+      io.to(lobbyId).emit(ACTION_FROM_SERVER, lobbyUpdate(lobbyId, newLobby));
     });
     prevState = state;
   });
