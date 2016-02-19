@@ -1,10 +1,8 @@
 import * as actions from '../actions';
 
-// a client is an action creator that dispatches LOBBY_SCOPED_ACTIONs against a
-// rootStore
-export default class LobbyProxy {
-  constructor(lobbyId, store) {
-    this.store = store;
+export class LobbyDispatcher {
+  constructor(lobbyId, baseDispatchFn) {
+    this._baseDispatch = baseDispatchFn;
     this.lobbyId = lobbyId;
 
     // bind all those actions
@@ -21,6 +19,21 @@ export default class LobbyProxy {
     }
   }
 
+  dispatch(action) {
+    const scopedAction = actions.lobbyScopedAction(this.lobbyId, action);
+    return this._baseDispatch(scopedAction);
+  }
+}
+
+
+// a client is an action creator that dispatches LOBBY_SCOPED_ACTIONs against a
+// rootStore
+export default class LocalLobbyProxy extends LobbyDispatcher {
+  constructor(lobbyId, store) {
+    super(lobbyId, store.dispatch);
+    this.store = store;
+  }
+
   getState() {
     return this.store.getState().lobbies[this.lobbyId];
   }
@@ -30,9 +43,13 @@ export default class LobbyProxy {
       fn(this.getState());
     });
   }
+}
 
-  dispatch(action) {
-    const scopedAction = actions.lobbyScopedAction(this.lobbyId, action);
-    return this.store.dispatch(scopedAction);
+export class RemoteLobbyProxy extends LocalLobbyProxy {
+  constructor(lobbyId, localStore, io) {
+    super(lobbyId, localStore);
+    this._baseDispatch = (action) => {
+      io.emit(ACTION_FROM_CLIENT, action);
+    }
   }
 }
