@@ -42,6 +42,7 @@ export const LOBBY_SCOPED_ACTION = 'in lobby';
 
 // fucking socket stuff
 export const ACTION_FROM_SERVER = 'socket event: server emitted action';
+export const ACTION_FROM_CLIENT = 'socket event: client emitted action';
 export const JOIN_LOBBY = 'socket command: join lobby';
 export const JOINED_LOBBY = 'server action: joined lobby';
 export const LOBBY_UPDATE = 'server action: lobby state changed';

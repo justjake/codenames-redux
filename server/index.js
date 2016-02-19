@@ -3,7 +3,7 @@ import uuid from 'node-uuid';
 import { playerByName } from '../utils';
 import socketIO from 'socket.io';
 import http from 'http';
-import { JOIN_LOBBY, ACTION_FROM_SERVER } from '../constants';
+import { JOIN_LOBBY, ACTION_FROM_SERVER, ACTION_FROM_CLIENT } from '../constants';
 import { lobbyUpdate, joinedLobby } from './actions';
 
 function getLobbyById(store, lobbyId) {
@@ -74,6 +74,10 @@ function makeSocketApp(httpServer, store) {
     socket.on(JOIN_LOBBY, ({lobbyId}) => {
       socket.join(lobbyId);
       socket.send(ACTION_FROM_SERVER, joinedLobby(lobbyId));
+    });
+
+    socket.on(ACTION_FROM_CLIENT, (action) => {
+      store.dispatch(action);
     });
   });
 
