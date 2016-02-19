@@ -200,9 +200,11 @@ function main() {
   // start the first game right away
   store.dispatch(actions.startNewGame(players[RED_SPYMASTER]))
 
-  // enable user interfaces
+  // enable single-game mode
   enableReadline(store);
-  enableServer(store);
+  enableServer(store, 1337);
+
+  // enable multi-game server
   startServer(store, 1338);
 }
 
