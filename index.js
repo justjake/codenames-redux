@@ -18,7 +18,7 @@ import {
 } from 'lodash';
 import { UnknownWordError } from './errors';
 import express from 'express';
-import LobbyProxy from './server/LobbyProxy';
+import LobbyProxy from './LobbyProxy';
 import { startServer } from './server';
 
 // these are used as player names for the required 4 players to play a simple

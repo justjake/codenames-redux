@@ -3,6 +3,7 @@ import { LOBBY_UPDATE, JOIN_LOBBY, JOINED_LOBBY } from '../constants';
 import { merge } from '../utils';
 import { combineReducers, createStore } from 'redux';
 import { lobbyUpdate } from '../server/actions';
+import RemoteLobbyProxy from './RemoteLobbyProxy';
 
 const SOCKET_CONNECTED = 'socket connected';
 const SOCKET_DISCONNECTED = 'socket disconnected';
@@ -53,7 +54,7 @@ function lobbyMembershipReducer(state = {wanted: [], has: []}, action) {
     return merge(state, {has: []});
   case JOIN_LOBBY:
     return merge(state, {wanted: state.wanted.concat(action.lobbyId)});
-  case JOINED_LOBBY:;
+  case JOINED_LOBBY:
     return merge(state, {has: state.has.concat(action.lobbyId)});
   }
   return state;
@@ -109,6 +110,7 @@ class Client {
     this.uri = uri;
     this.store = createStore(rootReducer);
     this.socket = connect(uri, this.store);
+    this._lobbyProxies = {};
   }
 
   // this is pseudocode since I don't have a promise bepis yet
@@ -128,5 +130,16 @@ class Client {
       this.store.dispatch(joinLobby(lobbyId));
       return player;
     });
+  }
+
+  // usage: client.lobby('LGTM').elect
+  lobby(lobbyId) {
+    const proxy = this._lobbyProxies[lobbyId] || new RemoteLobbyProxy(lobbyId, this.store, this.socket);
+    this._lobbyProxies[lobbyId] = proxy;
+    return proxy;
+  }
+
+  getPlayer(lobbyId) {
+    return this.store.getState().players[lobbyId];
   }
 }

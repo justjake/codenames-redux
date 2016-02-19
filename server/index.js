@@ -5,6 +5,7 @@ import socketIO from 'socket.io';
 import http from 'http';
 import { JOIN_LOBBY, ACTION_FROM_SERVER, ACTION_FROM_CLIENT } from '../constants';
 import { lobbyUpdate, joinedLobby } from './actions';
+import LobbyProxy from '../LobbyProxy';
 
 function getLobbyById(store, lobbyId) {
   const state = store.getState();
