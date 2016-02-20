@@ -4,7 +4,7 @@
   "description": "codenames boardgame chatbot dingus",
   "main": "index.js",
   "scripts": {
-    "test": "babel-node ./index.js"
+    "start": "babel-node ./src/index.js"
   },
   "author": "jake",
   "license": "ISC",
