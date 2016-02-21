@@ -20,13 +20,13 @@ import { UnknownWordError } from './errors';
 import express from 'express';
 import LobbyProxy from './LobbyProxy';
 import { startServer } from './server';
+import setUpGame, {
+  RED_SPYMASTER,
+  BLUE_SPYMASTER,
+  RED_GUESSER,
+  BLUE_GUESSER
+} from './standalone-game';
 
-// these are used as player names for the required 4 players to play a simple
-// game via the readline UI.
-const RED_SPYMASTER = 'red spymaster';
-const BLUE_SPYMASTER = 'blue spymaster';
-const RED_GUESSER = 'red guessers';
-const BLUE_GUESSER = 'blue guessers';
 
 // this is for playing a simple game on the curses UI.
 function enableServer(store, port = 1337) {
@@ -47,7 +47,8 @@ function enableServer(store, port = 1337) {
 }
 
 function enableReadline(store) {
-  const knownCommands = [GIVE_CLUE, GUESS, SKIP, START_NEW_GAME];
+  const STATE = 'state';
+  const knownCommands = [GIVE_CLUE, GUESS, SKIP, START_NEW_GAME, STATE];
 
   const rl = readline.createInterface({
     input: process.stdin,
@@ -184,28 +185,14 @@ function main() {
 
   // this is a proxy that dispatches scoped actions for us :)
   const store = new LobbyProxy(lobbyId, rootStore);
-
-  // create all required players
-  store.dispatch(actions.registerPlayer(RED_SPYMASTER, RED));
-  store.dispatch(actions.registerPlayer(BLUE_SPYMASTER, BLUE));
-  store.dispatch(actions.registerPlayer(RED_GUESSER, RED));
-  store.dispatch(actions.registerPlayer(BLUE_GUESSER, BLUE));
-
-  // assign spymasters
-  store.dispatch(actions.electSpymaster(RED_SPYMASTER));
-  store.dispatch(actions.electSpymaster(BLUE_SPYMASTER));
-
-  const players = playerMap(store)
-
-  // start the first game right away
-  store.dispatch(actions.startNewGame(players[RED_SPYMASTER]))
+  setUpGame(store);
 
   // enable single-game mode
   enableReadline(store);
   enableServer(store, 1337);
 
   // enable multi-game server
-  startServer(store, 1338);
+  startServer(rootStore, 1338);
 }
 
 main();

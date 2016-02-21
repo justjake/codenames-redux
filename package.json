@@ -4,12 +4,11 @@
   "description": "codenames boardgame chatbot dingus",
   "main": "index.js",
   "scripts": {
-    "start": "babel-node ./src/index.js"
+    "start": "node ./server.js"
   },
   "author": "jake",
   "license": "ISC",
   "dependencies": {
-    "babel": "5.8.35",
     "chalk": "1.1.1",
     "es6-error": "2.0.2",
     "express": "4.13.4",
@@ -22,6 +21,20 @@
     "redux": "3.3.1",
     "socket.io": "1.4.5",
     "socket.io-client": "*",
-    "source-map-support": "0.4.0"
+    "source-map-support": "0.4.0",
+    "babel-core": "^6.0.20",
+    "babel-eslint": "^4.1.3",
+    "babel-loader": "^6.0.1",
+    "babel-preset-es2015": "^6.0.15",
+    "babel-preset-react": "^6.0.15",
+    "babel-preset-stage-0": "^6.0.15",
+    "eslint-plugin-react": "^3.6.2",
+    "react-hot-loader": "^1.3.0",
+    "webpack": "^1.12.2",
+    "webpack-dev-server": "^1.12.1",
+    "superagent": "^1.4.0",
+    "bluebird": "*",
+    "body-parser": "*",
+    "react-redux": "*"
   }
 }

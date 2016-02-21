@@ -1,9 +1,10 @@
-import * as actions from '../actions';
+import * as actions from './actions';
 
 export class LobbyDispatcher {
   constructor(lobbyId, baseDispatchFn) {
     this._baseDispatch = baseDispatchFn;
     this.lobbyId = lobbyId;
+    console.log('created with id', lobbyId);
 
     // bind all those actions
     Object.keys(actions).forEach(name => {

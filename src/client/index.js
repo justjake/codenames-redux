@@ -1,9 +1,12 @@
-import SocketClient from 'socket.io-client';
-import { LOBBY_UPDATE, JOIN_LOBBY, JOINED_LOBBY } from '../constants';
+import SocketClient from 'socket.io/node_modules/socket.io-client';
+import { LOBBY_UPDATE, JOIN_LOBBY, JOINED_LOBBY,
+         ACTION_FROM_SERVER, ACTION_FROM_CLIENT } from '../constants';
 import { merge } from '../utils';
 import { combineReducers, createStore } from 'redux';
 import { lobbyUpdate } from '../server/actions';
 import RemoteLobbyProxy from './RemoteLobbyProxy';
+import Api from './Api';
+import { playerByName } from '../utils';
 
 const SOCKET_CONNECTED = 'socket connected';
 const SOCKET_DISCONNECTED = 'socket disconnected';
@@ -76,7 +79,7 @@ function playerReducer(state = {}, action) {
   case LOBBY_UPDATE:
     // keep up to date as the lobby updates - maybe someone else is now spymaster?
     if (!(action.lobbyId in state)) return state;
-    const newPlayer = playerByName(action.lobby.players);
+    const newPlayer = playerByName(action.lobby.players, state[action.lobbyId].name);
     return merge(state, {[action.lobbyId]: newPlayer});
   }
   return state;
@@ -99,23 +102,25 @@ function connect(uri, store) {
     store.dispatch(socketDisconnected());
   });
   socket.on(ACTION_FROM_SERVER, action => {
+    console.log('server action', action);
     store.dispatch(action);
   });
 
   return socket;
 }
 
-class Client {
-  constructor(uri) {
-    this.uri = uri;
+
+export default class Client {
+  constructor(socketServerRoot, apiRoot) {
+    this.api = new Api(apiRoot);
     this.store = createStore(rootReducer);
-    this.socket = connect(uri, this.store);
+    this.socket = connect(socketServerRoot, this.store);
     this._lobbyProxies = {};
   }
 
   // this is pseudocode since I don't have a promise bepis yet
   createLobby() {
-    return this.api.post(`lobby`).then(({lobbyId, lobby}) => {
+    return this.api.post(`lobby`, {ticket: 'bark'}).then(({lobbyId, lobby}) => {
       this.store.dispatch(lobbyUpdate(lobbyId, lobby));
       return lobbyId;
     });
@@ -126,7 +131,7 @@ class Client {
     return this.api.post(`lobby/${lobbyId}/join`, {name, team}).then(({player, lobby}) => {
       this.store.dispatch(createdPlayer(lobbyId, player));
       this.store.dispatch(lobbyUpdate(lobbyId, lobby));
-      this.io.send(JOIN_LOBBY, lobbyId);
+      this.socket.emit(JOIN_LOBBY, lobbyId);
       this.store.dispatch(joinLobby(lobbyId));
       return player;
     });
@@ -141,5 +146,9 @@ class Client {
 
   getPlayer(lobbyId) {
     return this.store.getState().players[lobbyId];
+  }
+
+  all() {
+    return this.api.get('all');
   }
 }

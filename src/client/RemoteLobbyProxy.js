@@ -1,4 +1,5 @@
 import LocalLobbyProxy from '../LobbyProxy';
+import { ACTION_FROM_CLIENT } from '../constants';
 
 export default class RemoteLobbyProxy extends LocalLobbyProxy {
   constructor(lobbyId, localStore, io) {

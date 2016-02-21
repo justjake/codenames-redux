@@ -5,7 +5,10 @@ import socketIO from 'socket.io';
 import http from 'http';
 import { JOIN_LOBBY, ACTION_FROM_SERVER, ACTION_FROM_CLIENT } from '../constants';
 import { lobbyUpdate, joinedLobby } from './actions';
+import { createLobby } from '../actions';
 import LobbyProxy from '../LobbyProxy';
+import bodyParser from 'body-parser';
+
 
 function getLobbyById(store, lobbyId) {
   const state = store.getState();
@@ -15,6 +18,12 @@ function getLobbyById(store, lobbyId) {
 function makeExpressApp(store) {
   const app = express();
   const api = express.Router();
+  app.use((req, res, next) => {
+    res.set('Access-Control-Allow-Origin', 'http://localhost:3000');
+    res.set('Access-Control-Allow-Headers', 'Content-Type');
+    next();
+  })
+  app.use(bodyParser.json());
   app.use('/api/v0', api);
 
   // get all application state
@@ -24,10 +33,10 @@ function makeExpressApp(store) {
 
   // create a new lobby, returning the new lobby state and the 4-letter lobby id code
   api.post('/lobby', (req, res) => {
-    const ticket = `${req.param.ticket || 'no-request-ticket'}-${uuid.v4()}`;
-    store.dispatch(actions.createLobby(ticket));
-    state = store.getState();
-    const lobbyId = getLobbyIdForTicket(state, ticket);
+    const ticket = `${req.params.ticket || 'no-request-ticket'}-${uuid.v4()}`;
+    store.dispatch(createLobby(ticket));
+    const state = store.getState();
+    const lobbyId = state.ticketsToIds[ticket];
     const lobby = state.lobbies[lobbyId]
     res.json({
       // here's the id, brother
@@ -40,9 +49,9 @@ function makeExpressApp(store) {
   // get the full state of a lobby, including any game in progress
   api.get('/lobby/:id', (req, res) => {
     const state = store.getState();
-    const lobby = state.lobbies[req.param.id];
+    const lobby = state.lobbies[req.params.id];
     res.json({
-      lobbyId: req.param.id,
+      lobbyId: req.params.id,
       lobby,
     });
   });
@@ -50,11 +59,11 @@ function makeExpressApp(store) {
   // we'll send this to join a user to a lobby, creating a new player
   // response: the Player object, and the total lobby state
   api.post('/lobby/:id/join', (req, res) => {
-    const lobby = new LobbyProxy(req.param.id, store);
-    lobby.registerPlayer(req.param.name, req.param.team);
+    const lobby = new LobbyProxy(req.params.id, store);
+    lobby.registerPlayer(req.body.name, req.body.team);
     const state = lobby.getState();
-    const player = playerByName(state.players);
-    res.join({
+    const player = playerByName(state.players, req.body.name);
+    res.send({
       player,
       lobby: state,
     });
@@ -72,13 +81,21 @@ function makeSocketApp(httpServer, store) {
 
   // allow sockets to join lobbies with the JOIN_LOBBY command
   io.on('connection', socket => {
-    socket.on(JOIN_LOBBY, ({lobbyId}) => {
+    console.log(`new client socket ${socket.id}`);
+
+    socket.on(JOIN_LOBBY, (lobbyId) => {
       socket.join(lobbyId);
       socket.send(ACTION_FROM_SERVER, joinedLobby(lobbyId));
+      console.log(`socket ${socket.id} joined lobby ${lobbyId}`);
     });
 
     socket.on(ACTION_FROM_CLIENT, (action) => {
       store.dispatch(action);
+    });
+
+    socket.on('error', (err) => {
+      console.error(err);
+      console.error(`err handling socket ${socket.id}`)
     });
   });
 
