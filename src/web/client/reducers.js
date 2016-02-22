@@ -1,3 +1,5 @@
+import Board from '../../models/Board';
+
 import {
   SOCKET_DISCONNECTED,
   SOCKET_CONNECTED
@@ -39,7 +41,14 @@ export function lobbyMembershipReducer(state = {wanted: [], has: []}, action) {
 
 export function lobbyReducer(state = {}, action) {
   if (action.type === LOBBY_UPDATE) {
-    return merge(state, {[action.lobbyId]: action.lobby});
+    let lobby = action.lobby;
+    if (lobby.game && lobby.game.board) {
+      // vivify new board
+      console.log('created board')
+      const game = merge(lobby.game, {board: Board.fromData(lobby.game.board)});
+      lobby = merge(lobby, {game});
+    }
+    return merge(state, {[action.lobbyId]: lobby});
   }
   return state;
 }

@@ -1,38 +1,64 @@
+"use strict";
 import React, { Component } from 'react';
 import { render } from 'react-dom';
 import { connect } from 'react-redux';
 import renderGame from '../../../views/renderGame';
 
-function Lobby({lobby, lobbyId}) {
-  return (
-      <div>
-      <h1>{lobbyId}</h1>
-      <h2>players</h2>
-      <ul>
-      { lobby.players.map(p => <li key={p.name}>{p.name}</li>) }
-      </ul>
-      <h2>game</h2>
-      <code>
-      <pre>
-      { lobby.game ? renderGame(lobby) : 'no game yet' }
-      </pre>
-      </code>
-      </div>
-  );
-}
+import MuiThemeProvider from 'material-ui/lib/MuiThemeProvider';
+import AppBar from 'material-ui/lib/app-bar';
+import getMuiTheme from 'material-ui/lib/styles/getMuiTheme';
+import {deepOrange500, indigo500} from 'material-ui/lib/styles/colors';
+import {Spacing} from 'material-ui/lib/styles';
+import Paper from 'material-ui/lib/paper';
+
+import Lobby from './Lobby'
+
+const muiTheme = getMuiTheme({
+  palette: {
+    accent1Color: indigo500,
+  },
+});
 
 class App extends Component {
+  getStyles() {
+    return {
+      root: {
+        paddingTop: Spacing.desktopKeylineIncrement,
+      },
+      content: {
+        margin: '1em',
+        padding: '1em',
+      }
+    }
+  }
   render() {
+    const styles = this.getStyles();
+    const { prepareStyles } = muiTheme;
     const lobbies = this.props.lobbies;
     const lobbyIds = Object.keys(lobbies);
     return (
-      <div>
-        <h1>all known lobbies</h1>
-        { lobbyIds.map(id => {
-          return <Lobby key={id} lobbyId={id} lobby={lobbies[id]} />
-        })
-        }
-      </div>
+      <MuiThemeProvider muiTheme={muiTheme}>
+        <div>
+          <AppBar
+            title="Codenames"
+            zDepth={0}
+            style={{
+                position: 'fixed',
+              }}
+
+            />
+          <div style={prepareStyles(styles.root)}>
+            <Paper zDepth={2} style={prepareStyles(styles.content)}>
+              <h1>all known lobbies</h1>
+              {
+                lobbyIds.map(id => {
+                  return <Lobby key={id} lobbyId={id} lobby={lobbies[id]} />
+                })
+              }
+            </Paper>
+          </div>
+        </div>
+      </MuiThemeProvider>
     );
   }
 }

@@ -9,6 +9,8 @@ import { render } from 'react-dom';
 import App from './components/App';
 import { RED, BLUE } from '../../constants';
 import setUpGame from '../../standalone-game';
+import injectTapEventPlugin from 'react-tap-event-plugin';
+injectTapEventPlugin();
 
 const API_HOST = 'http://localhost:1338';
 const API_PATH = `${API_HOST}/api/v0`;
