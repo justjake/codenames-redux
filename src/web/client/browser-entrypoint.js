@@ -7,8 +7,8 @@ import url from 'url';
 import React, { Component } from 'react';
 import { render } from 'react-dom';
 import App from './components/App';
-import { RED, BLUE } from '../constants';
-import setUpGame from '../standalone-game';
+import { RED, BLUE } from '../../constants';
+import setUpGame from '../../standalone-game';
 
 const API_HOST = 'http://localhost:1338';
 const API_PATH = `${API_HOST}/api/v0`;

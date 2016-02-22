@@ -1,4 +1,4 @@
-import { LOBBY_UPDATE, JOINED_LOBBY } from '../constants';
+import { LOBBY_UPDATE, JOINED_LOBBY } from './constants';
 
 export function lobbyUpdate(lobbyId, lobby) {
   return {

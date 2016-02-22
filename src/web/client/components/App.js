@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { render } from 'react-dom';
 import { connect } from 'react-redux';
-import renderGame from '../../views/renderGame';
+import renderGame from '../../../views/renderGame';
 
 function Lobby({lobby, lobbyId}) {
   return (

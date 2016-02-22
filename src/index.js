@@ -19,7 +19,7 @@ import {
 import { UnknownWordError } from './errors';
 import express from 'express';
 import LobbyProxy from './LobbyProxy';
-import { startServer } from './server';
+import { startServer } from './web/server';
 import setUpGame, {
   RED_SPYMASTER,
   BLUE_SPYMASTER,
