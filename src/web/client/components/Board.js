@@ -50,7 +50,7 @@ export default function Board({board, showUnguessedColors}) {
   const wordProps = words.map(word => ({word, status: board.statusOf(word), team: board.teamOf(word)}));
 
   return (
-    <GridList cols={5}>
+    <GridList cols={5} cellHeight={150}>
       { wordProps.map(word => (
           renderWord(word, showUnguessedColors)
       ))}

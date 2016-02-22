@@ -48,14 +48,11 @@ class App extends Component {
 
             />
           <div style={prepareStyles(styles.root)}>
-            <Paper zDepth={2} style={prepareStyles(styles.content)}>
-              <h1>all known lobbies</h1>
               {
                 lobbyIds.map(id => {
                   return <Lobby key={id} lobbyId={id} lobby={lobbies[id]} />
                 })
               }
-            </Paper>
           </div>
         </div>
       </MuiThemeProvider>

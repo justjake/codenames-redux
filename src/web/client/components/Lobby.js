@@ -15,9 +15,8 @@ export default function Lobby({lobby, lobbyId}) {
     <Card>
       <CardTitle title={lobbyId} subtitle={`${lobby.players.length} players`} />
       <CardText>
-        <PlayerList players={lobby.players} />
-        <h2>Game</h2>
         { lobby.game ? <Board board={lobby.game.board} showUnguessedColors /> : 'no game yet' }
+        <PlayerList players={lobby.players} />
       </CardText>
     </Card>
   );

@@ -20,4 +20,8 @@ the spymasters, who do all the computer input.
 
 Here's how it looks:
 
+Playing in "single-game mode" in the terminal:
 ![playing the game](http://take.ms/8iNjn)
+
+The start of the web ui:
+![wow material ui quite nice](http://take.ms/xr2VE)
