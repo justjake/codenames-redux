@@ -5,7 +5,7 @@
   "scripts": {
     "start": "node ./server.js",
     "build": "rm -rf ./lib && babel ./src -d ./lib",
-    "watch": "babel ./src --watch -d ./lib",
+    "watch": "./node_modules/.bin ./src --watch -d ./lib",
     "prepublish": "npm run build"
   },
   "files": [
@@ -24,6 +24,7 @@
     "material-ui": "0.14.4",
     "minimist": "1.2.0",
     "node-uuid": "1.4.7",
+    "react": "^0.14.0",
     "react-hot-loader": "^1.3.0",
     "react-redux": "*",
     "react-router": "2.0.0",

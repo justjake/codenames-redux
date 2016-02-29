@@ -1,5 +1,6 @@
 import { omit } from 'lodash';
 import lobbiesReducer, { initialState as lobbiesInitialState } from '../reducers/root2';
+import { joinLobbyToChannel } from './actions';
 import * as actions from '../actions';
 import { merge, update } from '../utils';
 import {
@@ -29,7 +30,7 @@ export default function botReducer(state = initialState(), action) {
 
       const ticket = `inline create lobby action`;
       const createLobbyAction = actions.createLobby(ticket);
-      const newLobbyStore = lobbyReducer(state.lobbyStore, createLobbyAction);
+      const newLobbyStore = lobbiesReducer(state.lobbyStore, createLobbyAction);
       const newLobbyId = newLobbyStore.ticketsToIds[ticket];
       const newChannelMapping = channelToLobbyIdReducer(state.channelToLobbyId, joinLobbyToChannel(action.channel, newLobbyId));
       return { lobbyStore: newLobbyStore, channelToLobbyId: newChannelMapping };
@@ -47,7 +48,7 @@ export default function botReducer(state = initialState(), action) {
     default:
       return update(
         state, 'lobbyStore',
-        lobbyReducer(state.lobbyStore, action));
+        lobbiesReducer(state.lobbyStore, action));
   }
 }
 

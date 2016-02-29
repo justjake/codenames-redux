@@ -1,5 +1,5 @@
 import lobbyReducer, { initialState as lobbyInitialState } from './lobby';
-import { includes, sampleSize } from 'lodash';
+import { includes, sampleSize, omit } from 'lodash';
 import { CREATE_LOBBY, DESTROY_LOBBY, LOBBY_SCOPED_ACTION } from '../constants';
 import { UnknownActionError, UnknownLobbyIdError } from '../errors';
 import { merge } from '../utils';

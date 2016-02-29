@@ -9,10 +9,10 @@ import * as botActions from './actions';
 import * as gameActions from '../actions';
 import renderGame from '../views/renderGame';
 import { playerByName } from '../utils';
-import { PLAYER_TEAMS, SPYMASTER } from '../constants';
+import { PLAYER_TEAMS, SPYMASTER, RED, BLUE } from '../constants';
 import LobbyDispatcher from '../LobbyDispatcher';
 import { renderTeams } from './views';
-import { CMD_HELP, CMD_BAD_COMMAND } from './constants';
+import { CMD_HELP, CMD_BAD_COMMAND, CMD_PREFIX } from './constants';
 
 // general commands
 const CMD_SHOW = 'show';
@@ -40,24 +40,23 @@ const HELP_TEXT = `
 The great and powerful Codenames bot interface.
 see https://github.com/justjake/codenames-redux
 
-To interact with me, type !codenames [command]
-To get help with a command, type !codenames [command] --help
+To interact with me, type ${CMD_PREFIX} [command]
+To get help with a command, type ${CMD_PREFIX} [command] --help
 
 Setting up a game:
 
-  1. do "!codenames ${CMD_ENABLE_IN_CHANNEL}"
-  2. red team: "!codenames ${CMD_JOIN_LOBBY} ${RED}"
-  2. blue team: "!codenames ${CMD_JOIN_LOBBY} ${BLUE}"
-  3. become spymaster: "!codenames ${CMD_BECOME_SPYMASTER}"
-  4. start the game: "!codenames ${CMD_START_GAME}"
+  1. do "${CMD_PREFIX} ${CMD_ENABLE_IN_CHANNEL}"
+  2. red team: "${CMD_PREFIX} ${CMD_JOIN_LOBBY} ${RED}"
+  2. blue team: "${CMD_PREFIX} ${CMD_JOIN_LOBBY} ${BLUE}"
+  3. become spymaster: "${CMD_PREFIX} ${CMD_BECOME_SPYMASTER}"
+  4. start the game: "${CMD_PREFIX} ${CMD_NEW_GAME}"
 
 Playing:
 
-  !codenames ${CMD_GIVE_CLUE} WORD GUESSES - give a clue
-  !codenames ${CMD_GUESS} WORD - guess WORD for your team
-  !codenames ${CMD_PASS} - pass on this phase
-  !codenames ${CMD_SHOW} - show the current game state for this channel
-`;
+  ${CMD_PREFIX} ${CMD_GIVE_CLUE} WORD GUESSES - give a clue
+  ${CMD_PREFIX} ${CMD_GUESS} WORD - guess WORD for your team
+  ${CMD_PREFIX} ${CMD_PASS} - pass on this phase
+  ${CMD_PREFIX} ${CMD_SHOW} - show the current game state for this channel`;
 
 const BLOCK_DELIM = '```';
 
@@ -80,7 +79,7 @@ export default class CodenamesHubot extends HubotBot {
     this.store = createStore(botReducer);
 
     // stateless commands
-    this.addCommand(this.help, CMD_HELP);
+    this.addCommand(this.helpCommand, CMD_HELP);
     this.addCommand(this.badCommand, CMD_BAD_COMMAND);
     this.addCommand(this.show, CMD_SHOW);
 
@@ -132,7 +131,7 @@ export default class CodenamesHubot extends HubotBot {
 
   guardLobby(channel, state = this.store.getState()) {
     const lobbyId = state.channelToLobbyId[channel];
-    const lobby = state.lobbyStore.lobbies[lobby];
+    const lobby = state.lobbyStore.lobbies[lobbyId];
 
     if (!lobbyId) throw new RequiresLobbyError(`no lobbyId for channel ${channel}`);
     if (!lobby) throw new RequiresLobbyError(`no lobby for lobbyId ${lobbyId}`);
@@ -147,7 +146,7 @@ export default class CodenamesHubot extends HubotBot {
 
     const result = this.guardLobby(channel, state);
     result.channel = channel;
-    const player = playerByName(result.lobby, username);
+    const player = playerByName(result.lobby.players, username);
 
     if (!player) throw new RequiresPlayerError(`No player for username ${s(username)}`);
     result.player = player;
@@ -155,9 +154,9 @@ export default class CodenamesHubot extends HubotBot {
   }
 
   handleTeamChange(res, prevState, newState) {
-    const oldLobby = this.guardLobby(res, prevState);
-    const newLobby = this.guardLobby(res, newState);
-
+    const channel = this.guardChannel(res);
+    const oldLobby = this.guardLobby(channel, prevState).lobby;
+    const newLobby = this.guardLobby(channel, newState).lobby;
     if (oldLobby.players === newLobby.players) {
       // didn't change
       res.reply(`your command should have changed your teams, but didn't. Try again? Ask @jake?`);
@@ -169,8 +168,9 @@ export default class CodenamesHubot extends HubotBot {
   }
 
   handleGameChange(res, prevState, newState) {
-    const oldLobby = this.guardLobby(res, prevState);
-    const newLobby = this.guardLobby(res, newState);
+    const channel = this.guardChannel(res)
+    const oldLobby = this.guardLobby(channel, prevState);
+    const newLobby = this.guardLobby(channel, newState);
 
     if (oldLobby.game === newLobby.game) {
       res.reply(`your command should have changed the game, but didn't. Perhaps it is not your turn? Or something. I don't know.`);
@@ -203,51 +203,46 @@ export default class CodenamesHubot extends HubotBot {
 
     this.store.dispatch(botActions.createLobbyInChannel(channel));
     const lobbyId = this.store.getState().channelToLobbyId[channel];
-    res.send(`created lobby ${lobbyId} for channel ${channel}`);
+    res.send(`created lobby ${s(lobbyId)} for channel ${s(channel)}`);
   }
 
   disable(argv, res) {
-    const channel = this.channelOf(res);
-    if (!channel) {
-      res.send(NEEDS_CHANNEL_TEXT);
-      return;
-    }
+    const channel = this.guardChannel(res);
+    const { lobbyId } = this.guardLobby(channel);
 
-    const state = this.store.getState();
-    const lobbyId = this.store.channelToLobbyId[channel];
-
-    if (lobbyId) {
-      this.store.dispatch(botActions.removeLobbyFromChannel(channel));
-      this.store.dispatch(gameActions.destroyLobby(lobbyId));
-      res.send(`removed lobby ${lobbyId} from channel ${channel}`);
-    } else {
-      res.send(`could not find a lobby for channel ${channel}`);
-    }
+    this.store.dispatch(botActions.removeLobbyFromChannel(channel));
+    this.store.dispatch(gameActions.destroyLobby(lobbyId));
+    res.send(`removed lobby ${s(lobbyId)} from channel ${s(channel)}`);
   }
 
-  help(argv, res) {
+  helpCommand(argv, res) {
     res.send(this.renderHelp());
   }
 
   badCommand(argv, res) {
     res.reply(`unknown command (you asked for "${argv.allArgv._.join(' ')}")`);
-    this.help(argv, res);
+    this.helpCommand(argv, res);
   }
 
   show(argv, res) {
     const channel = this.guardChannel(res);
     const { lobby } = this.guardLobby(channel);
-    const view = renderGame(lobby, false);
-    res.send(codeblock(view));
-    // TODO: render the full game for spymasters somehow
-    // TODO: print team rosters
+
+    res.send(renderTeams(lobby.players));
+    if (lobby.game) {
+      res.send(renderGame(lobby, false));
+      // TODO: render the full game for spymasters somehow
+      // TODO: print team rosters
+    } else {
+      res.send(`no game in progress. Once you have enough players, start one with ${CMD_NEW_GAME}.`)
+    }
   }
 
   joinTeam(argv, res) {
     const channel = this.guardChannel(res);
     const { lobby, lobbyDispatcher } = this.guardLobby(channel);
     const username = this.usernameOf(res);
-    const player = playerByName(lobby, username);
+    const player = playerByName(lobby.players, username);
     const team = argv._[0];
 
     if (!includes(PLAYER_TEAMS, team)) {
@@ -313,7 +308,7 @@ export default class CodenamesHubot extends HubotBot {
   newGame(argv, res) {
     const { player, lobbyDispatcher } = this.guardPlayer(res);
     lobbyDispatcher.startNewGame(player);
-    this.reply("started a new game on your orders");
+    res.reply("started a new game on your orders");
   }
 
   resetLobby(argv, res) {
@@ -322,6 +317,6 @@ export default class CodenamesHubot extends HubotBot {
     const channel = this.guardChannel(res);
     const { lobbyDispatcher } = this.guardLobby(channel);
     lobbyDispatcher.reset();
-    this.reply("BLAMMO, reset the lobby to zippy-zap");
+    res.reply("BLAMMO, reset the lobby to zippy-zap");
   }
 }

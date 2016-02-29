@@ -34,7 +34,7 @@ Install this from `npm`, then add a script to your hubot/scripts like this:
 
 ```
 // codenames.js
-var plugin = require('codenames-redux/bot');
+var plugin = require('codenames-redux/lib/bot');
 
 module.exports = function (robot) {
   plugin(robot);

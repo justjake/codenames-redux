@@ -1,4 +1,5 @@
 import Bot from './Bot';
+import ExtendableError from 'es6-error';
 
 class RequiresChannelError extends ExtendableError {}
 
@@ -37,16 +38,19 @@ export default class HubotBot extends Bot {
 
   // where the magic happens
   run(res) {
-    const unparsedArgs = res.match[1];
+    const unparsedArgs = res.match[1].trim();
     const { name, argv, allArgv } = this.parse(unparsedArgs);
     if (argv) argv.allArgv = allArgv;
     const cmd = this.cmdMap[name];
+    if (argv && this.wantsHelp(argv))  {
+      res.send(cmd.renderHelp());
+      return { cmd, name, argv, successful: false, };
+    }
 
     try {
-      cmd(argv, res)
+      cmd.handler(argv, res)
     } catch (err) {
       res.reply(`Error while handling command "${name}":`);
-      res.reply(err.toString());
       res.reply(err.stack);
       return { cmd, name, argv, err, successful: false, };
     }

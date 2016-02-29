@@ -10,6 +10,7 @@ export default class Bot {
   }
 
   addCommand(handler, name, ...aliases) {
+    if (!handler || !handler.bind) throw new Error(`handler ${handler} for name ${name} is bad`);
     const cmd = new Command(name, ...aliases);
     this.commands.push(cmd);
     [name, ...aliases].forEach(alias => this.cmdMap[alias] = cmd);
@@ -27,7 +28,7 @@ export default class Bot {
     const [cmd, ...cmdArgs] = allArgv._;
     const argv = parseArgs(cmdArgs);
 
-    // --help or --?
+    // root --help or --?
     if (this.wantsHelp(allArgv)) {
       return {
         name: CMD_HELP,

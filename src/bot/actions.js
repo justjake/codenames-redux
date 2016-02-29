@@ -13,8 +13,9 @@ export function createLobbyInChannel(channel, lobbyId) {
 
 export function joinLobbyToChannel(channel, lobbyId) {
   return {
-    type: CREATE_LOBBY_IN_CHANNEL,
+    type: JOIN_LOBBY_TO_CHANNEL,
     channel,
+    lobbyId,
   };
 }
 

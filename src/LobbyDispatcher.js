@@ -1,4 +1,4 @@
-import * as actions from '../actions';
+import * as actions from './actions';
 
 export default class LobbyDispatcher {
   constructor(lobbyId, baseDispatchFn) {
