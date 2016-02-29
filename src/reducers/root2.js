@@ -48,5 +48,8 @@ export default function rootReducer(state = initialState(), action) {
     if (newLobby2 === oldLobby) return state;
     const lobbies2 = merge(state.lobbies, {[action.lobbyId]: newLobby2});
     return merge(state, {lobbies: lobbies2});
+
+  default:
+    return state;
   }
 }

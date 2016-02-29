@@ -64,7 +64,8 @@ export default function lobbyReducer(state = initialState(), action) {
     return merge(state, {players: state.players.concat(player)});
 
   case REMOVE_PLAYER:
-    if (!playerByName(action.name)) throw new UnknownPlayerError(action.name);
+    if (!playerByName(state.players, action.name)) throw new UnknownPlayerError(action.name);
+    return merge(state, {players: state.players.filter(p => p.name !== action.name)});
 
   default:
     // handle other actions with gameReducer

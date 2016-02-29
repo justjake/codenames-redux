@@ -43,6 +43,11 @@ export function merge(base, added) {
   return Object.assign({}, base, added);
 }
 
+export function update(object, prop, newValue) {
+  if (object[prop] === newValue) return object;
+  return merge(object, {[prop]: newValue});
+}
+
 export function map2d(grid, transformFn) {
   const result = [];
   for (let r = 0; r < grid.length; r++) {

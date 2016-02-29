@@ -8,3 +8,4 @@ export class UnknownActionError extends ExtendableError {
     super(`action "${action.type}": ${JSON.stringify(action)}`);
   }
 }
+export class BadClueCountError extends ExtendableError {};

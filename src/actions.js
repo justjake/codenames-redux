@@ -4,6 +4,7 @@ import {
   SKIP,
 
   REGISTER_PLAYER,
+  REMOVE_PLAYER,
   ELECT_SPYMASTER,
   START_NEW_GAME,
   RESET,
@@ -44,6 +45,13 @@ export function registerPlayer(name, team) {
     name,
     team,
   }
+}
+
+export function removePlayer(name) {
+  return {
+    type: REMOVE_PLAYER,
+    name,
+  };
 }
 
 export function electSpymaster(name, team) {
