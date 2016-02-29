@@ -25,3 +25,18 @@ Playing in "single-game mode" in the terminal:
 
 The start of the web ui:
 ![wow material ui quite nice](http://take.ms/xr2VE)
+
+## Hubot plugin
+
+Highly experimental.
+
+Install this from `npm`, then add a script to your hubot/scripts like this:
+
+```
+// codenames.js
+var plugin = require('codenames-redux/bot');
+
+module.exports = function (robot) {
+  plugin(robot);
+}
+```
