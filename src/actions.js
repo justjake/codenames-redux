@@ -68,10 +68,9 @@ export function startNewGame(player) {
   }
 }
 
-export function reset(player) {
+export function reset() {
   return {
     type: RESET,
-    player
   }
 }
 

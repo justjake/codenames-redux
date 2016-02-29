@@ -4,7 +4,8 @@ export default class Command {
     this.aliases = aliases;
     this.handler = () => null;
     this.help = "no help availible :(";
-    this.changesState = false;
+    this._changesGame = false;
+    this._changesTeams = false;
   }
 
   setHelp(help) {
@@ -12,8 +13,13 @@ export default class Command {
     return this;
   }
 
-  setChangesState(doesChangeState = true) {
-    this.changesState = doesChangeState;
+  changesGame(doesChange = true) {
+    this._changesGame = doesChange;
+    return this;
+  }
+
+  changesTeams(doesChange = true) {
+    this._changesTeams = doesChange;
     return this;
   }
 

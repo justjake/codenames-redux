@@ -1,5 +1,6 @@
 import parseArgs from 'minimist';
 import Command from './Command';
+import { CMD_HELP, CMD_BAD_COMMAND } from './constants';
 
 export default class Bot {
   constructor() {
@@ -23,12 +24,14 @@ export default class Bot {
   parse(string) {
     const args = string.split(/\s+/);
     const allArgv = parseArgs(args, {stopEarly: true});
-    const [cmd, ...cmdArgs] = argv._;
+    const [cmd, ...cmdArgs] = allArgv._;
+    const argv = parseArgs(cmdArgs);
 
     // --help or --?
     if (this.wantsHelp(allArgv)) {
       return {
         name: CMD_HELP,
+        argv,
         allArgv,
       };
     }
@@ -37,13 +40,14 @@ export default class Bot {
     if (!cmd || !this.cmdMap.hasOwnProperty(cmd)) {
       return {
         name: CMD_BAD_COMMAND,
+        argv,
         allArgv,
       };
     }
 
     return {
       name: cmd,
-      argv: parseArgs(cmdArgs),
+      argv,
       allArgv,
     };
   }
