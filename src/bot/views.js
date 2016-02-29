@@ -4,7 +4,7 @@ export function renderTeams(players) {
   return PLAYER_TEAMS.map(
     teamName => {
       const team = players.filter(p => p.team === teamName);
-      return `Team ${teamName}:\n${}renderPlayerList(players)`;
+      return `Team ${teamName}:\n${renderPlayerList(players)}`;
     }).join('\n\n');
 }
 

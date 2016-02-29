@@ -65,7 +65,7 @@ function codeblock(contents) {
   return `${BLOCK_DELIM}\n${contents}\n${BLOCK_DELIM}\n`;
 }
 
-funciton s(something) {
+function s(something) {
   return JSON.stringify(something) || 'undefined';
 }
 
