@@ -1,6 +1,6 @@
 {
   "name": "codenames-redux",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "codenames boardgame chatbot dingus",
   "scripts": {
     "start": "node ./server.js",
