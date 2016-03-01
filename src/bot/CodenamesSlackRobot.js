@@ -1,13 +1,13 @@
 import ExtendableError from 'es6-error';
 import { includes } from 'lodash';
 
-import HubotBot from './HubotBot';
+import SlackBot from './SlackBot';
 import Clue from '../models/Clue';
 import { createStore } from 'redux';
 import botReducer, { lobbyForChannel } from './reducers';
 import * as botActions from './actions';
 import * as gameActions from '../actions';
-import renderGame from '../views/renderGame';
+import renderGamePoorly from '../views/renderGame';
 import { playerByName } from '../utils';
 import { PLAYER_TEAMS, SPYMASTER, RED, BLUE } from '../constants';
 import LobbyDispatcher from '../LobbyDispatcher';
@@ -66,6 +66,10 @@ function codeblock(contents) {
   return `${BLOCK_DELIM}\n${contents}\n${BLOCK_DELIM}\n`;
 }
 
+function renderGame(gameState, showSpecial) {
+  return codeblock(renderGamePoorly(gameState, showSpecial));
+}
+
 function s(something) {
   return JSON.stringify(something) || 'undefined';
 }
@@ -73,7 +77,7 @@ function s(something) {
 class RequiresLobbyError extends ExtendableError {}
 class RequiresPlayerError extends ExtendableError {}
 
-export default class CodenamesHubot extends HubotBot {
+export default class CodenamesHubot extends SlackBot {
   constructor(hubot) {
     super(hubot);
     this.help = HELP_TEXT;
@@ -123,22 +127,25 @@ export default class CodenamesHubot extends HubotBot {
   }
 
   // :tada:
-  run(res) {
+  run(req, res) {
     const prevState = this.store.getState();
-    const { cmd, successful } = super.run(res);
+    const { cmd, successful } = super.run(req, res);
     const newState = this.store.getState();
 
     // we let the regular error handler take care of things - dont need to
     // tell spymasters and stuff
-    if (!successful) return;
+    if (!successful) return res.send();
 
     try {
-      if (cmd._changesTeams) this.handleTeamChange(res, prevState, newState);
-      if (cmd._changesGame) this.handleGameChange(res, prevState, newState);
+      if (cmd._changesTeams) this.handleTeamChange(req, res, prevState, newState);
+      if (cmd._changesGame) this.handleGameChange(req, res, prevState, newState);
     } catch (err) {
-      res.send(`encountered error after running command "${cmd.name}" successfully.`);
-      res.send(err.stack);
+      res.text(`encountered error after running command "${cmd.name}" successfully.`);
+      res.text(err.stack);
     }
+
+    // important - ends the request and sends all buffered messages to the clients
+    res.send();
   }
 
   guardLobby(channel, state = this.store.getState()) {
@@ -152,9 +159,9 @@ export default class CodenamesHubot extends HubotBot {
     return { lobbyId, lobby, lobbyDispatcher };
   }
 
-  guardPlayer(res, state = this.store.getState()) {
-    const channel = this.guardChannel(res);
-    const username = this.usernameOf(res);
+  guardPlayer(req, state = this.store.getState()) {
+    const channel = this.guardChannel(req);
+    const username = this.usernameOf(req);
 
     const result = this.guardLobby(channel, state);
     result.channel = channel;
@@ -165,101 +172,100 @@ export default class CodenamesHubot extends HubotBot {
     return result;
   }
 
-  handleTeamChange(res, prevState, newState) {
-    const channel = this.guardChannel(res);
+  handleTeamChange(req, res, prevState, newState) {
+    const channel = this.guardChannel(req);
     const oldLobby = this.guardLobby(channel, prevState).lobby;
     const newLobby = this.guardLobby(channel, newState).lobby;
     if (oldLobby.players === newLobby.players) {
       // didn't change
-      res.reply(`your command should have changed your teams, but didn't. Try again? Ask @jake?`);
+      res.text(`your command should have changed your teams, but didn't. Try again? Ask @jake?`);
       return;
     }
 
-    res.send("Roster changed. Here's the new one.");
-    res.send(renderTeams(newLobby.players));
+    res.text("Roster changed. Here's the new one.");
+    res.text(renderTeams(newLobby.players));
   }
 
-  handleGameChange(res, prevState, newState) {
-    const channel = this.guardChannel(res)
+  handleGameChange(req, res, prevState, newState) {
+    const channel = this.guardChannel(req)
     const oldLobby = this.guardLobby(channel, prevState).lobby;
     const newLobby = this.guardLobby(channel, newState).lobby;
 
     if (oldLobby.game === newLobby.game) {
-      res.reply(`your command should have changed the game, but didn't. Perhaps it is not your turn? Or something. I don't know.`);
+      res.text(`your command should have changed the game, but didn't. Perhaps it is not your turn? Or something. I don't know.`);
       return;
     }
 
     const spymasters = newLobby.players.filter(p => p.role === SPYMASTER);
     const masterBoard = renderGame(newLobby, true);
     const publicBoard = renderGame(newLobby, false);
-    spymasters.forEach(spymaster => { newLobby
-      this.pm(spymaster.name, `Your codenames game in ${this.channelOf(res)} changed.`)
-      this.pm(spymaster.name, `here is the new game state:`);
-      this.pm(spymaster.name, masterBoard);
-    });
+    spymasters.forEach(spymaster => {
+      res.text(`Your codenames game in ${this.channelOf(req)} changed.`, spymaster.name)
+      res.text(`here is the new game state:`, spymaster.name);
+      res.text(masterBoard, spymaster.name);
+    })
 
-    res.send(publicBoard)
+    res.text(publicBoard)
   }
 
   // commands
-  enable(argv, res) {
-    const channel = this.guardChannel(res);
+  enable(argv, req, res) {
+    const channel = this.guardChannel(req);
     const state = this.store.getState();
 
     console.log(`enable message in room`, channel);
 
     if (lobbyForChannel(state, channel)) {
-      res.send("Silly you! codenames is already enabled in this channel.");
+      res.text("Silly you! codenames is already enabled in this channel.");
       return;
     }
 
     this.store.dispatch(botActions.createLobbyInChannel(channel));
     const lobbyId = this.store.getState().channelToLobbyId[channel];
-    res.send(`created lobby ${s(lobbyId)} for channel ${s(channel)}`);
+    res.text(`created lobby ${s(lobbyId)} for channel ${s(channel)}`);
   }
 
-  disable(argv, res) {
-    const channel = this.guardChannel(res);
+  disable(argv, req, res) {
+    const channel = this.guardChannel(req);
     const { lobbyId } = this.guardLobby(channel);
 
     this.store.dispatch(botActions.removeLobbyFromChannel(channel));
     this.store.dispatch(gameActions.destroyLobby(lobbyId));
-    res.send(`removed lobby ${s(lobbyId)} from channel ${s(channel)}`);
+    res.text(`removed lobby ${s(lobbyId)} from channel ${s(channel)}`);
   }
 
-  helpCommand(argv, res) {
-    res.send(this.renderHelp());
+  helpCommand(argv, req, res) {
+    res.text(this.renderHelp());
   }
 
-  badCommand(argv, res) {
-    res.reply(`unknown command (you asked for "${argv.allArgv._.join(' ')}")`);
+  badCommand(argv, req, res) {
+    res.text(`unknown command (you asked for "${argv.allArgv._.join(' ')}")`);
     this.helpCommand(argv, res);
   }
 
-  show(argv, res) {
-    const channel = this.guardChannel(res);
+  show(argv, req, res) {
+    const channel = this.guardChannel(req);
     const { lobby } = this.guardLobby(channel);
 
-    res.send(renderTeams(lobby.players));
+    res.text(renderTeams(lobby.players));
     if (lobby.game) {
-      res.send(renderGame(lobby, false));
+      res.text(renderGame(lobby, false));
       // TODO: render the full game for spymasters somehow
-      // TODO: print team rosters
     } else {
-      res.send(`no game in progress. Once you have enough players, start one with ${CMD_NEW_GAME}.`)
+      res.text(`no game in progress. Once you have enough players, start one with ${CMD_NEW_GAME}.`)
     }
   }
 
-  joinTeam(argv, res) {
-    const channel = this.guardChannel(res);
+  joinTeam(argv, req, res) {
+    const channel = this.guardChannel(req);
     const { lobby, lobbyDispatcher } = this.guardLobby(channel);
-    const username = this.usernameOf(res);
+    const username = this.usernameOf(req);
     const player = playerByName(lobby.players, username);
     const team = argv._[0];
 
     if (!includes(PLAYER_TEAMS, team)) {
-      res.send(`Sorry, can't add you as a player on team ${s(team)}`);
-      res.send(`valid teams are ${s(PLAYER_TEAMS)}`);
+      res.text(`Sorry, can't add you as a player on team ${s(team)}`);
+      res.text(`valid teams are ${s(PLAYER_TEAMS)}`);
       return
     }
 
@@ -271,20 +277,20 @@ export default class CodenamesHubot extends HubotBot {
     res.reply(`Ok, you are on team ${team}`);
   }
 
-  leaveGame(argv, res) {
-    const { player, lobbyDispatcher } = this.guardPlayer(res);
+  leaveGame(argv, req, res) {
+    const { player, lobbyDispatcher } = this.guardPlayer(req);
     lobbyDispatcher.removePlayer(player.name);
     res.reply(`Ok, you're out of the game. Sorry to see you go.`);
   }
 
-  becomeSpymaster(argv, res) {
-    const { player, lobbyDispatcher } = this.guardPlayer(res);
+  becomeSpymaster(argv, req, res) {
+    const { player, lobbyDispatcher } = this.guardPlayer(req);
     lobbyDispatcher.electSpymaster(player.name);
     res.reply(`Ok, you're now the spymaster of your team.`);
   }
 
-  guess(argv, res) {
-    const { player, lobbyDispatcher } = this.guardPlayer(res);
+  guess(argv, req, res) {
+    const { player, lobbyDispatcher } = this.guardPlayer(req);
     const word = argv._[0];
 
     if (!word) {
@@ -295,14 +301,14 @@ export default class CodenamesHubot extends HubotBot {
     lobbyDispatcher.guess(player, word);
   }
 
-  pass(argv, res) {
-    const { player, lobbyDispatcher } = this.guardPlayer(res);
+  pass(argv, req, res) {
+    const { player, lobbyDispatcher } = this.guardPlayer(req);
     // TODO: does this allow you to pass someone else's turn?
     lobbyDispatcher.skip(player);
   }
 
-  giveClue(argv, res) {
-    const { player, lobbyDispatcher } = this.guardPlayer(res);
+  giveClue(argv, req, res) {
+    const { player, lobbyDispatcher } = this.guardPlayer(req);
 
     if (argv._.length !== 2) {
       res.reply(`Oops, you need to specify both a WORD and a NUMBER`);
@@ -317,23 +323,23 @@ export default class CodenamesHubot extends HubotBot {
     lobbyDispatcher.giveClue(player, clue);
   }
 
-  newGame(argv, res) {
-    const { player, lobbyDispatcher } = this.guardPlayer(res);
+  newGame(argv, req, res) {
+    const { player, lobbyDispatcher } = this.guardPlayer(req);
     lobbyDispatcher.startNewGame(player);
     res.reply("started a new game on your orders");
   }
 
-  resetLobby(argv, res) {
+  resetLobby(argv, req, res) {
     // TODO: allow resetting without a player???
     // TODO (all actions): SCOPE ACTIONS TO LOBBY OMG
-    const channel = this.guardChannel(res);
+    const channel = this.guardChannel(req);
     const { lobbyDispatcher } = this.guardLobby(channel);
     lobbyDispatcher.reset();
     res.reply("BLAMMO, reset the lobby to zippy-zap");
   }
 
-  testPopulateGame(argv, res) {
-    const { lobbyDispatcher } = this.guardLobby(this.guardChannel(res));
+  testPopulateGame(argv, req, res) {
+    const { lobbyDispatcher } = this.guardLobby(this.guardChannel(req));
     setUpGame(lobbyDispatcher, false);
   }
 }

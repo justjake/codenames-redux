@@ -3,7 +3,7 @@ import ExtendableError from 'es6-error';
 
 class RequiresChannelError extends ExtendableError {}
 
-export const SLACK_RESPOND_REGEX = /^!?codenames:?(.*)/;
+export const SLACK_RESPOND_REGEX = /codenames(.*)/;
 
 function fmtChannel(channelName) {
   if (channelName[0] === '#') return channelName;
@@ -18,8 +18,13 @@ function fmtUsername(userName) {
 export default class SlackBot extends Bot {
   constructor(slackbot) {
     super();
-    this.robot = hubot;
-    this.listener = (req, res) => this.run(req, res);
+    this.robot = slackbot;
+    this.listener = this.listener.bind(this)
+  }
+
+  listener(req, res) {
+    console.log('recieved message', req);
+    this.run(req, res);
   }
 
   channelOf(req) {
@@ -40,15 +45,24 @@ export default class SlackBot extends Bot {
 
   addSlackRobotListener() {
     this.robot.listen(SLACK_RESPOND_REGEX, this.listener);
+    this.robot.listen('cn', this.listener);
+    this.robot.listen('cn :words(.+)', this.listener);
   }
 
   // where the magic happens
   run(req, res) {
-    const unparsedArgs = req.matches[0].trim();
+    // patch this in to match Hubot API
+    res.reply = (text) => {
+      res.text(`${this.usernameOf(req)}: ${text}`)
+    }
+
+    const unparsedArgs = req.params.words.trim();
     const { name, argv, allArgv } = this.parse(unparsedArgs);
     if (argv) argv.allArgv = allArgv;
     const cmd = this.cmdMap[name];
     const result = { res, cmd, name, argv, successful: false };
+
+    console.log('parsed command', result)
 
     if (argv && this.wantsHelp(argv))  {
       res.text(cmd.renderHelp());
