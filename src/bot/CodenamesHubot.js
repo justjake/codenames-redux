@@ -13,6 +13,7 @@ import { PLAYER_TEAMS, SPYMASTER, RED, BLUE } from '../constants';
 import LobbyDispatcher from '../LobbyDispatcher';
 import { renderTeams } from './views';
 import { CMD_HELP, CMD_BAD_COMMAND, CMD_PREFIX } from './constants';
+import setUpGame from '../standalone-game';
 
 // general commands
 const CMD_SHOW = 'show';
@@ -22,6 +23,7 @@ const CMD_JOIN_LOBBY = 'join';
 const CMD_LEAVE_LOBBY = 'leave';
 // const CMD_SET_TEAM = 'set-team'; // nah, let's just use CMD_JOIN_LOBBY instead
 const CMD_BECOME_SPYMASTER = 'become-spymaster';
+const CMD_POPULATE = 'populate-lobby';
 
 // channel commands
 const CMD_ENABLE_IN_CHANNEL = 'enable-channel';
@@ -69,6 +71,7 @@ function s(something) {
 }
 
 class RequiresLobbyError extends ExtendableError {}
+class RequiresPlayerError extends ExtendableError {}
 
 export default class CodenamesHubot extends HubotBot {
   constructor(hubot) {
@@ -113,6 +116,10 @@ export default class CodenamesHubot extends HubotBot {
     this.addCommand(this.giveClue, CMD_GIVE_CLUE)
       .setHelp(`${CMD_GIVE_CLUE} WORD COUNT. Give a clue! Spymasters only.`)
       .changesGame();
+
+    this.addCommand(this.testPopulateGame, CMD_POPULATE)
+      .setHelp(`fill the lobby with dummy users so you can start a game right away.`)
+      .changesTeams();
   }
 
   // :tada:
@@ -125,8 +132,13 @@ export default class CodenamesHubot extends HubotBot {
     // tell spymasters and stuff
     if (!successful) return;
 
-    if (cmd._changesTeams) this.handleTeamChange(res, prevState, newState);
-    if (cmd._changesGame) this.handleGameChange(res, prevState, newState);
+    try {
+      if (cmd._changesTeams) this.handleTeamChange(res, prevState, newState);
+      if (cmd._changesGame) this.handleGameChange(res, prevState, newState);
+    } catch (err) {
+      res.send(`encountered error after running command "${cmd.name}" successfully.`);
+      res.send(err.stack);
+    }
   }
 
   guardLobby(channel, state = this.store.getState()) {
@@ -169,8 +181,8 @@ export default class CodenamesHubot extends HubotBot {
 
   handleGameChange(res, prevState, newState) {
     const channel = this.guardChannel(res)
-    const oldLobby = this.guardLobby(channel, prevState);
-    const newLobby = this.guardLobby(channel, newState);
+    const oldLobby = this.guardLobby(channel, prevState).lobby;
+    const newLobby = this.guardLobby(channel, newState).lobby;
 
     if (oldLobby.game === newLobby.game) {
       res.reply(`your command should have changed the game, but didn't. Perhaps it is not your turn? Or something. I don't know.`);
@@ -180,7 +192,7 @@ export default class CodenamesHubot extends HubotBot {
     const spymasters = newLobby.players.filter(p => p.role === SPYMASTER);
     const masterBoard = renderGame(newLobby, true);
     const publicBoard = renderGame(newLobby, false);
-    spymasters.each(spymaster => { newLobby
+    spymasters.forEach(spymaster => { newLobby
       this.pm(spymaster.name, `Your codenames game in ${this.channelOf(res)} changed.`)
       this.pm(spymaster.name, `here is the new game state:`);
       this.pm(spymaster.name, masterBoard);
@@ -318,5 +330,10 @@ export default class CodenamesHubot extends HubotBot {
     const { lobbyDispatcher } = this.guardLobby(channel);
     lobbyDispatcher.reset();
     res.reply("BLAMMO, reset the lobby to zippy-zap");
+  }
+
+  testPopulateGame(argv, res) {
+    const { lobbyDispatcher } = this.guardLobby(this.guardChannel(res));
+    setUpGame(lobbyDispatcher, false);
   }
 }

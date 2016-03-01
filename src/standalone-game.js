@@ -7,7 +7,7 @@ export const BLUE_SPYMASTER = 'blue spymaster';
 export const RED_GUESSER = 'red guessers';
 export const BLUE_GUESSER = 'blue guessers';
 
-export default function setUpGame(lobbyProxy) {
+export default function setUpGame(lobbyProxy, start = true) {
   // create all required players
   lobbyProxy.registerPlayer(RED_SPYMASTER, RED);
   lobbyProxy.registerPlayer(BLUE_SPYMASTER, BLUE);
@@ -19,5 +19,5 @@ export default function setUpGame(lobbyProxy) {
   lobbyProxy.electSpymaster(BLUE_SPYMASTER);
 
   // boom
-  lobbyProxy.startNewGame();
+  if (start) lobbyProxy.startNewGame();
 }

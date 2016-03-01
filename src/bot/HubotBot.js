@@ -13,7 +13,7 @@ export default class HubotBot extends Bot {
 
   pm(username, string) {
     // TODO: implement pms harder
-    return this.robot.messageRoom(res.envelope.user.name, string)
+    return this.robot.messageRoom(username, string)
   }
 
   channelOf(res) {
