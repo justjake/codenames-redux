@@ -31,6 +31,7 @@
     "react-router-redux": "3.0.0",
     "react-tap-event-plugin": "0.2.2",
     "redux": "3.3.1",
+    "slack-robot": "3.0.4",
     "socket.io": "1.4.5",
     "socket.io-client": "*",
     "source-map-support": "0.4.0",
