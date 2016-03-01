@@ -4,8 +4,7 @@
   "description": "codenames boardgame chatbot dingus",
   "scripts": {
     "start": "node ./server.js",
-    "build": "rm -rf ./lib && babel ./src -d ./lib",
-    "watch": "./node_modules/.bin ./src --watch -d ./lib",
+    "build": "rm -rf ./lib && babel --presets es2015,stage-0,react ./src -d ./lib",
     "prepublish": "npm run build"
   },
   "files": [
