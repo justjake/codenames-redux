@@ -1,4 +1,4 @@
-import DECK from '../data/cards.json';
+import DECK from '../data/cards';
 import chalk from 'chalk'
 
 import {
