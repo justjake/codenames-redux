@@ -1,5 +1,6 @@
 import Bot from './Bot';
 import ExtendableError from 'es6-error';
+import { codeblock } from './views';
 
 class RequiresChannelError extends ExtendableError {}
 
@@ -70,8 +71,8 @@ export default class SlackBot extends Bot {
     try {
       cmd.handler(argv, req, res)
     } catch (err) {
-      res.text(`Error while handling command "${name}":`);
-      res.text(err.stack);
+      res.text(`Error while handling command "${name}":\n${err.toString()}`);
+      res.text(`Stack trace from command "${name}":\n${codeblock(err.stack)}`, this.usernameOf(req));
       result.err = err;
       return result;
     }

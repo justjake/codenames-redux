@@ -1,3 +1,3 @@
 export default function renderClue(clue) {
-  return `("${clue.word}", ${clue.count})`;
+  return `"${clue.word}" for ${clue.count}`;
 }

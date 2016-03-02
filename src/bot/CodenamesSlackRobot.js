@@ -85,7 +85,7 @@ export default class CodenamesHubot extends SlackBot {
     this.store = store;
 
     // stateless commands
-    this.addCommand(this.helpCommand, CMD_HELP, '?');
+    this.addCommand(this.helpCommand, CMD_HELP, '?', `pass --here to display help in-channel`);
     this.addCommand(this.badCommand, CMD_BAD_COMMAND);
     this.addCommand(this.show, CMD_SHOW, 'status', 's');
 
@@ -238,14 +238,18 @@ export default class CodenamesHubot extends SlackBot {
   }
 
   helpCommand(argv, req, res) {
-    res.text(this.renderHelp());
+    const txt = this.renderHelp();
+    if (argv.here) {
+      res.text(txt);
+    } else {
+      if (this.channelOf(req)) res.reply(`help is coming to you via a PM`);
+      res.text(txt, this.usernameOf(req));
+    }
   }
 
   badCommand(argv, req, res) {
     res.text(`unknown command (you asked for "${argv.allArgv._.join(' ')}")`);
     res.text(`known commands:\n${this.renderCommands()}`);
-    res.text(`see "${CMD_PREFIX} help" for more information.`)
-    this.helpCommand(argv, req, res);
   }
 
   show(argv, req, res) {
@@ -274,8 +278,8 @@ export default class CodenamesHubot extends SlackBot {
     const team = argv._[0];
 
     if (!includes(PLAYER_TEAMS, team)) {
-      res.text(`Sorry, can't add you as a player on team ${s(team)}`);
-      res.text(`valid teams are ${s(PLAYER_TEAMS)}`);
+      res.reply(`Sorry, can't add you as a player on team ${s(team)}`);
+      res.reply(`valid teams are ${s(PLAYER_TEAMS)}`);
       return
     }
 
@@ -301,7 +305,8 @@ export default class CodenamesHubot extends SlackBot {
 
   guess(argv, req, res) {
     const { player, lobbyDispatcher } = this.guardPlayer(req);
-    const word = argv._[0];
+    // words like LOCH NESS need a space.
+    const word = argv._.join(' ');
 
     if (!word) {
       res.reply(`You need to guess a word`);
@@ -364,5 +369,8 @@ export default class CodenamesHubot extends SlackBot {
     this.testPopulateGame(argv, req, res);
     this.joinTeam({_: ['red']}, req, res);
     this.newGame(argv, req, res);
+  }
+
+  testLeaveChannel(argv, req, res) {
   }
 }

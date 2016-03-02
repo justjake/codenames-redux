@@ -78,5 +78,5 @@ export function renderGame(rootState, showUnguessed) {
   const history = renderClueHistory(game.clueHistory);
   const board = renderBoard(game.board, showUnguessed);
   const prompt = renderPrompt(rootState);
-  return `${history}\n${board}\n${prompt}`;
+  return `${history}\n\n${board}\n\n${prompt}`;
 }
