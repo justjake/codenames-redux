@@ -1,0 +1,6 @@
+#!/usr/bin/env node
+
+// run this with PERSIST=some/dir SLACK_TOKEN=your-slack-token
+
+var main = require('../lib/bot').default;
+main();

@@ -10,8 +10,12 @@
   },
   "files": [
     "src",
-    "lib"
+    "lib",
+    "bin"
   ],
+  "bin": {
+    "codenames-redux-slack-bot": "./bin/codenames-redux-slack-bot"
+  },
   "author": "jake",
   "license": "ISC",
   "dependencies": {

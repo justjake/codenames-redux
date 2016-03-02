@@ -4,6 +4,7 @@ import path from 'path';
 
 // mutate json data to replace board JSON with Board instances
 function hydrateBoards(json) {
+  if (!json) return;
   const lobbyIds = Object.keys(json.lobbyStore.lobbies);
   lobbyIds.forEach(lobbyId => {
     console.log(`hydrating lobbyId ${lobbyId}`)
