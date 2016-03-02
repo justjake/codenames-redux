@@ -24,6 +24,7 @@
     "lodash": "4.3.0",
     "material-ui": "0.14.4",
     "minimist": "1.2.0",
+    "node-persist": "0.0.8",
     "node-uuid": "1.4.7",
     "react": "^0.14.0",
     "react-hot-loader": "^1.3.0",

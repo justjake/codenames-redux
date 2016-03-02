@@ -3,7 +3,6 @@ import { includes } from 'lodash';
 
 import SlackBot from './SlackBot';
 import Clue from '../models/Clue';
-import { createStore } from 'redux';
 import botReducer, { lobbyForChannel } from './reducers';
 import * as botActions from './actions';
 import * as gameActions from '../actions';
@@ -78,17 +77,17 @@ class RequiresLobbyError extends ExtendableError {}
 class RequiresPlayerError extends ExtendableError {}
 
 export default class CodenamesHubot extends SlackBot {
-  constructor(hubot) {
+  constructor(store, hubot) {
     super(hubot);
     this.help = HELP_TEXT;
     // TODO: boostrap from robot brain
     // TODO: persist state into robot brain (will have to hydrate the Boards)
-    this.store = createStore(botReducer);
+    this.store = store;
 
     // stateless commands
-    this.addCommand(this.helpCommand, CMD_HELP);
+    this.addCommand(this.helpCommand, CMD_HELP, '?');
     this.addCommand(this.badCommand, CMD_BAD_COMMAND);
-    this.addCommand(this.show, CMD_SHOW);
+    this.addCommand(this.show, CMD_SHOW, 'status', 's');
 
     // lobby management
     this.addCommand(this.enable, CMD_ENABLE_IN_CHANNEL)
@@ -114,7 +113,7 @@ export default class CodenamesHubot extends SlackBot {
     this.addCommand(this.guess, CMD_GUESS)
       .setHelp(`guess WORD. guess a word! Don't worry, if it's not a real word, nothing happens.`)
       .changesGame();
-    this.addCommand(this.pass, CMD_PASS)
+    this.addCommand(this.pass, CMD_PASS, 'skip')
       .setHelp(`pass the current phase.`)
       .changesGame();
     this.addCommand(this.sudoPass, 'sudo-pass')
@@ -124,10 +123,10 @@ export default class CodenamesHubot extends SlackBot {
       .setHelp(`${CMD_GIVE_CLUE} WORD COUNT. Give a clue! Spymasters only.`)
       .changesGame();
 
+    // test stuff
     this.addCommand(this.testPopulateGame, CMD_POPULATE)
       .setHelp(`fill the lobby with dummy users so you can start a game right away.`)
       .changesTeams();
-
     this.addCommand(this.testGameUp, 'game-up')
       .setHelp('starts up a game');
   }
@@ -244,17 +243,24 @@ export default class CodenamesHubot extends SlackBot {
 
   badCommand(argv, req, res) {
     res.text(`unknown command (you asked for "${argv.allArgv._.join(' ')}")`);
+    res.text(`known commands:\n${this.renderCommands()}`);
+    res.text(`see "${CMD_PREFIX} help" for more information.`)
     this.helpCommand(argv, req, res);
   }
 
   show(argv, req, res) {
     const channel = this.guardChannel(req);
     const { lobby } = this.guardLobby(channel);
+    const username = this.usernameOf(req);
+    const player = playerByName(lobby.players, username);
 
     res.text(renderTeams(lobby.players));
     if (lobby.game) {
       res.text(renderGame(lobby, false));
-      // TODO: render the full game for spymasters somehow
+      // send the board to the spymaster
+      if (player.role === SPYMASTER) {
+        res.text(renderGame(lobby, true), player.name);
+      }
     } else {
       res.text(`no game in progress. Once you have enough players, start one with ${CMD_NEW_GAME}.`)
     }

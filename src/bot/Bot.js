@@ -59,14 +59,17 @@ export default class Bot {
     // TODO
   }
 
-  renderHelp() {
-    const commands = this.commands.map(cmd => {
+  renderCommands() {
+    return this.commands.map(cmd => {
       const aliases = cmd.aliases.length ?
                       `(aliases: ${cmd.aliases.join(', ')})`:
                       '';
       return `  ${cmd.name} ${aliases}`;
     }).join('\n');
+  }
 
+  renderHelp() {
+    const commands = this.renderCommands();
     return `
 ${this.help}
 
