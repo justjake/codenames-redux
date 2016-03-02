@@ -30,6 +30,8 @@ The start of the web ui:
 
 the slack butt is at version 1.0! It works!
 
+![slack screenshot](http://take.ms/9DD7u)
+
 You'll need to grab a new slack token for this bot, since it's a stand-alone bot
 (no Hubot support, sorry). Get one from your Slack team's website. Then,
 
@@ -37,6 +39,12 @@ You'll need to grab a new slack token for this bot, since it's a stand-alone bot
 $ npm install -g codenames-redux
 $ codenames-redux-slack-bot PERSIST=/path/to/db/dir SLACK_TOKEN=asfajdjfds
 ```
+
+For everything to work correctly, you should also upload all the custom emoji
+used by the bot for drawing the board. Here's how my slack emoji settings look:
+![emoji](http://take.ms/lIirQ)
+
+You can find all the emoji in the [images](./images) directory in this repo.
 
 PLEASE PLEASE PLEASE open a Github issue with suggestions for improvements or
 bug reports!
