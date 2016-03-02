@@ -87,3 +87,9 @@ export function ofTeam(list, team) {
 export function playerByName(list, name) {
   return list.filter(player => player.name === name)[0];
 }
+
+export function latestClue(clueHistory) {
+  const last = clueHistory[clueHistory.length - 1];
+  if (!last) return null;
+  return last.clue;
+}

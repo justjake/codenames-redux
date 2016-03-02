@@ -1,7 +1,7 @@
 import { longest, pad } from '../utils';
-import colorizeWord from './colorizeWord';
+import consoleColorize from './colorizeWord';
 
-export default function renderBoard(board, showUnguessedColors) {
+export default function renderBoard(board, showUnguessedColors, colorizeWord = consoleColorize) {
   const maxLenWord = longest(board.getWords());
   const maxLen = maxLenWord.length;
 

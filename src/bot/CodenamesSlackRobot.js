@@ -7,11 +7,10 @@ import { createStore } from 'redux';
 import botReducer, { lobbyForChannel } from './reducers';
 import * as botActions from './actions';
 import * as gameActions from '../actions';
-import renderGamePoorly from '../views/renderGame';
 import { playerByName } from '../utils';
 import { PLAYER_TEAMS, SPYMASTER, RED, BLUE } from '../constants';
 import LobbyDispatcher from '../LobbyDispatcher';
-import { renderTeams } from './views';
+import { renderTeams, renderLegend, renderGame } from './views';
 import { CMD_HELP, CMD_BAD_COMMAND, CMD_PREFIX } from './constants';
 import setUpGame from '../standalone-game';
 
@@ -39,13 +38,14 @@ const CMD_GIVE_CLUE = 'give-clue';
 const NEEDS_CHANNEL_TEXT = 'this command must be run in a channel';
 
 const HELP_TEXT = `
+# codenames-redux
 The great and powerful Codenames bot interface.
 see https://github.com/justjake/codenames-redux
 
 To interact with me, type ${CMD_PREFIX} [command]
 To get help with a command, type ${CMD_PREFIX} [command] --help
 
-Setting up a game:
+## Setting up a game:
 
   1. do "${CMD_PREFIX} ${CMD_ENABLE_IN_CHANNEL}"
   2. red team: "${CMD_PREFIX} ${CMD_JOIN_LOBBY} ${RED}"
@@ -53,21 +53,21 @@ Setting up a game:
   3. become spymaster: "${CMD_PREFIX} ${CMD_BECOME_SPYMASTER}"
   4. start the game: "${CMD_PREFIX} ${CMD_NEW_GAME}"
 
-Playing:
+## Playing:
 
   ${CMD_PREFIX} ${CMD_GIVE_CLUE} WORD GUESSES - give a clue
   ${CMD_PREFIX} ${CMD_GUESS} WORD - guess WORD for your team
   ${CMD_PREFIX} ${CMD_PASS} - pass on this phase
-  ${CMD_PREFIX} ${CMD_SHOW} - show the current game state for this channel`;
+  ${CMD_PREFIX} ${CMD_SHOW} - show the current game state for this channel
+
+## Map Legend:
+
+${renderLegend()}`;
 
 const BLOCK_DELIM = '```';
 
 function codeblock(contents) {
   return `${BLOCK_DELIM}\n${contents}\n${BLOCK_DELIM}\n`;
-}
-
-function renderGame(gameState, showSpecial) {
-  return codeblock(renderGamePoorly(gameState, showSpecial));
 }
 
 function s(something) {
@@ -115,7 +115,10 @@ export default class CodenamesHubot extends SlackBot {
       .setHelp(`guess WORD. guess a word! Don't worry, if it's not a real word, nothing happens.`)
       .changesGame();
     this.addCommand(this.pass, CMD_PASS)
-      .setHelp(`pass the current phase. Hopefully you can't do this for the other team =/`)
+      .setHelp(`pass the current phase.`)
+      .changesGame();
+    this.addCommand(this.sudoPass, 'sudo-pass')
+      .setHelp(`pass the current phase. Hopefully you don't do this for the other team =/`)
       .changesGame();
     this.addCommand(this.giveClue, CMD_GIVE_CLUE)
       .setHelp(`${CMD_GIVE_CLUE} WORD COUNT. Give a clue! Spymasters only.`)
@@ -124,6 +127,9 @@ export default class CodenamesHubot extends SlackBot {
     this.addCommand(this.testPopulateGame, CMD_POPULATE)
       .setHelp(`fill the lobby with dummy users so you can start a game right away.`)
       .changesTeams();
+
+    this.addCommand(this.testGameUp, 'game-up')
+      .setHelp('starts up a game');
   }
 
   // :tada:
@@ -196,14 +202,12 @@ export default class CodenamesHubot extends SlackBot {
       return;
     }
 
-    const spymasters = newLobby.players.filter(p => p.role === SPYMASTER);
+    const spymasters = newLobby.players.filter(p => p.role === SPYMASTER).map(p => p.name);
     const masterBoard = renderGame(newLobby, true);
     const publicBoard = renderGame(newLobby, false);
-    spymasters.forEach(spymaster => {
-      res.text(`Your codenames game in ${this.channelOf(req)} changed.`, spymaster.name)
-      res.text(`here is the new game state:`, spymaster.name);
-      res.text(masterBoard, spymaster.name);
-    })
+    res.text(`Your codenames game in ${this.channelOf(req)} changed.`, spymasters);
+    res.text(`here is the new game state:`, spymasters);
+    res.text(masterBoard, spymasters);
 
     res.text(publicBoard)
   }
@@ -240,7 +244,7 @@ export default class CodenamesHubot extends SlackBot {
 
   badCommand(argv, req, res) {
     res.text(`unknown command (you asked for "${argv.allArgv._.join(' ')}")`);
-    this.helpCommand(argv, res);
+    this.helpCommand(argv, req, res);
   }
 
   show(argv, req, res) {
@@ -307,6 +311,12 @@ export default class CodenamesHubot extends SlackBot {
     lobbyDispatcher.skip(player);
   }
 
+  sudoPass(argv, req, res) {
+    const { lobby, lobbyDispatcher } = this.guardLobby(this.guardChannel(req));
+    const superuser = {name: 'superuser', team: lobby.game.team};
+    lobbyDispatcher.skip(superuser);
+  }
+
   giveClue(argv, req, res) {
     const { player, lobbyDispatcher } = this.guardPlayer(req);
 
@@ -341,5 +351,12 @@ export default class CodenamesHubot extends SlackBot {
   testPopulateGame(argv, req, res) {
     const { lobbyDispatcher } = this.guardLobby(this.guardChannel(req));
     setUpGame(lobbyDispatcher, false);
+  }
+
+  testGameUp(argv, req, res) {
+    this.enable(argv, req, res);
+    this.testPopulateGame(argv, req, res);
+    this.joinTeam({_: ['red']}, req, res);
+    this.newGame(argv, req, res);
   }
 }

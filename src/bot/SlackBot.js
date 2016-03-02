@@ -23,7 +23,7 @@ export default class SlackBot extends Bot {
   }
 
   listener(req, res) {
-    console.log('recieved message', req);
+    console.log(`recieved message in ${req.to.name} (${req.to.type}) from ${req.from.name}`);
     this.run(req, res);
   }
 
@@ -56,13 +56,11 @@ export default class SlackBot extends Bot {
       res.text(`${this.usernameOf(req)}: ${text}`)
     }
 
-    const unparsedArgs = req.params.words.trim();
+    const unparsedArgs = (req.params.words || '').trim();
     const { name, argv, allArgv } = this.parse(unparsedArgs);
     if (argv) argv.allArgv = allArgv;
     const cmd = this.cmdMap[name];
     const result = { res, cmd, name, argv, successful: false };
-
-    console.log('parsed command', result)
 
     if (argv && this.wantsHelp(argv))  {
       res.text(cmd.renderHelp());
