@@ -26,17 +26,17 @@ Playing in "single-game mode" in the terminal:
 The start of the web ui:
 ![wow material ui quite nice](http://take.ms/xr2VE)
 
-## Hubot plugin
+## Slack bot
 
-Highly experimental.
+the slack butt is at version 1.0! It works!
 
-Install this from `npm`, then add a script to your hubot/scripts like this:
+You'll need to grab a new slack token for this bot, since it's a stand-alone bot
+(no Hubot support, sorry). Get one from your Slack team's website. Then,
 
 ```
-// codenames.js
-var plugin = require('codenames-redux/lib/bot');
-
-module.exports = function (robot) {
-  plugin(robot);
-}
+$ npm install -g codenames-redux
+$ codenames-redux-slack-bot PERSIST=/path/to/db/dir SLACK_TOKEN=asfajdjfds
 ```
+
+PLEASE PLEASE PLEASE open a Github issue with suggestions for improvements or
+bug reports!
