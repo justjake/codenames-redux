@@ -6,7 +6,7 @@ import {
 } from '../utils';
 import { GIVE_CLUE, GUESS, GAME_OVER, GUESSER } from '../constants';
 
-export default function renderPrompt(lobby, mangeName = n => n) {
+export default function renderPrompt(lobby, mangleName = n => n) {
   const game = lobby.game;
   const teamName = game.team;
 
