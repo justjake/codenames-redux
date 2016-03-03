@@ -87,3 +87,9 @@ export function renderGame(rootState, showUnguessed, mentionUsers=false) {
   const prompt = renderPrompt(rootState, mentionUsers ? mention : dontMention);
   return `${history}\n\n${board}\n\n${prompt}`;
 }
+
+const BLOCK_DELIM = '```';
+
+export function codeblock(contents) {
+  return `${BLOCK_DELIM}\n${contents}\n${BLOCK_DELIM}\n`;
+}

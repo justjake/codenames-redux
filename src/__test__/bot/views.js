@@ -13,4 +13,10 @@ describe('bot/views', () => {
       assert.equal(views.dontMention('@jake'), '@j.ake');
     })
   });
+
+  describe('codeblock', () => {
+    it('wraps text in a codeblock', () => {
+      assert.equal(views.codeblock('foo\nbar'), '```\nfoo\nbar\n```\n');
+    })
+  })
 })
