@@ -1,6 +1,6 @@
 import { RED, BLUE, KILL,
          GIVE_CLUE, GUESS, SKIP,
-         SPYMASTER, GUESSER
+         SPYMASTER, GUESSER, GAME_OVER,
        } from '../constants';
 import { merge, nextTeam } from '../utils';
 import { Board } from '../models/Board';
@@ -26,6 +26,7 @@ export function initialState(board) {
 function nextPhase(phase) {
   if (phase === GIVE_CLUE) return GUESS;
   if (phase === GUESS) return GIVE_CLUE;
+  if (phase === GAME_OVER) return GAME_OVER;
   throw new Error(`wat: should not have unknown phase ${phase}`);
 }
 
@@ -33,15 +34,19 @@ const KNOWN_ACTIONS = [GIVE_CLUE, GUESS, SKIP];
 
 export default function gameReducer(state, action) {
   // reject invalid actions
+  if (state.phase === GAME_OVER) return state;
   if (!includes(KNOWN_ACTIONS, action.type)) return state;
   if (action.player.team !== state.team) return state;
 
   // handle skips - increment the phase and team, and make sure we don't have any guesses
-  if (action.type === SKIP) return merge(state, {
-    phase: nextPhase(state.phase),
-    team: nextPhase(state.phase) === GIVE_CLUE ? nextTeam(state.team) : state.team,
-    remainingGuesses: null,
-  });
+  if (action.type === SKIP) {
+    return merge(state, {
+      phase: nextPhase(state.phase),
+      team: nextPhase(state.phase) === GIVE_CLUE ? nextTeam(state.team) : state.team,
+      remainingGuesses: null,
+    });
+  }
+
 
   // make sure we an actually execute this action
   // should we reject these here, or somewhere upsteam?
@@ -68,14 +73,14 @@ export default function gameReducer(state, action) {
     const correct = newBoard.statusOf(word) === state.team;
     const remainingGuesses = correct ? state.remainingGuesses - 1 : 0;
 
+    const team = remainingGuesses ? state.team : nextTeam(state.team);
+    let phase = remainingGuesses ? state.phase : nextPhase(state.phase);
+
     // handle win/loss. if this action caused the kill word to be picked, the
     // current team loses.
     let winner = newBoard.getDepleted() || null;
     if (winner === KILL) winner = nextTeam(state.team);
-
-    // switch team & phase?
-    const team = remainingGuesses ? state.team : nextTeam(state.team);
-    const phase = remainingGuesses ? state.phase : nextPhase(state.phase);
+    if (winner) phase = GAME_OVER;
 
     return merge(state, {
       board: newBoard,

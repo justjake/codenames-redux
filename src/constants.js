@@ -25,6 +25,7 @@ export const ROLES = [GUESSER, SPYMASTER];
 // turn phases
 export const GIVE_CLUE = 'give clue';
 export const GUESS = 'guess';
+export const GAME_OVER = 'game over';
 
 export const SKIP = 'skip';
 
