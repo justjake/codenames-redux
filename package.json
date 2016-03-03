@@ -4,9 +4,11 @@
   "description": "codenames boardgame chatbot dingus",
   "scripts": {
     "start": "node ./server.js",
-    "build": "rm -rf ./lib && babel --presets es2015,stage-0,react ./src -d ./lib",
+    "build": "rm -rf ./lib && babel ./src -d ./lib",
     "prepublish": "npm run build",
-    "bot": "babel-node ./src/bot/index.js"
+    "bot": "babel-node ./src/bot/index.js",
+    "test-watch": "mocha --watch ./src/__test__/",
+    "test": "mocha ./src/__test__/"
   },
   "files": [
     "src",
@@ -44,14 +46,16 @@
     "superagent": "^1.4.0"
   },
   "devDependencies": {
+    "babel-cli": "6.6.0",
     "babel-core": "^6.0.20",
     "babel-eslint": "^4.1.3",
     "babel-loader": "^6.0.1",
     "babel-preset-es2015": "^6.0.15",
     "babel-preset-react": "^6.0.15",
     "babel-preset-stage-0": "^6.0.15",
-    "babel-cli": "6.6.0",
+    "chai": "3.5.0",
     "eslint-plugin-react": "^3.6.2",
+    "mocha": "2.4.5",
     "webpack": "^1.12.2",
     "webpack-dev-server": "^1.12.1"
   }
