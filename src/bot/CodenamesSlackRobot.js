@@ -64,11 +64,6 @@ To get help with a command, type ${CMD_PREFIX} [command] --help
 
 ${renderLegend()}`;
 
-const BLOCK_DELIM = '```';
-
-function codeblock(contents) {
-  return `${BLOCK_DELIM}\n${contents}\n${BLOCK_DELIM}\n`;
-}
 
 function s(something) {
   return JSON.stringify(something) || 'undefined';
@@ -211,7 +206,7 @@ export default class CodenamesHubot extends SlackBot {
     res.text(publicBoard);
 
     // then tell the spymasters
-    res.text(`Your codenames game in ${this.channelOf(req)} changed:`, spymasters);
+    res.text(`Your codenames game in ${this.channelOf(req)} changed.`, spymasters);
     res.text(masterBoard, spymasters);
 
   }
@@ -267,7 +262,7 @@ export default class CodenamesHubot extends SlackBot {
     if (lobby.game) {
       res.text(renderGame(lobby, false));
       // send the board to the spymaster
-      if (player.role === SPYMASTER) {
+      if (player && player.role === SPYMASTER) {
         res.text(renderGame(lobby, true), player.name);
       }
     } else {
