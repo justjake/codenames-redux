@@ -34,8 +34,8 @@ const KNOWN_ACTIONS = [GIVE_CLUE, GUESS, SKIP];
 
 export default function gameReducer(state, action) {
   // reject invalid actions
-  if (state.phase === GAME_OVER) return state;
   if (!includes(KNOWN_ACTIONS, action.type)) return state;
+  if (state.phase === GAME_OVER) return state;
   if (action.player.team !== state.team) return state;
 
   // handle skips - increment the phase and team, and make sure we don't have any guesses
