@@ -12,6 +12,7 @@ import LobbyDispatcher from '../LobbyDispatcher';
 import { renderTeams, renderLegend, renderGame } from './views';
 import { CMD_HELP, CMD_BAD_COMMAND, CMD_PREFIX } from './constants';
 import setUpGame from '../standalone-game';
+import pkg from '../../package.json';
 
 // general commands
 const CMD_SHOW = 'show';
@@ -37,7 +38,7 @@ const CMD_GIVE_CLUE = 'give-clue';
 const NEEDS_CHANNEL_TEXT = 'this command must be run in a channel';
 
 const HELP_TEXT = `
-# codenames-redux
+# codenames-redux ${pkg.version}
 The great and powerful Codenames bot interface.
 see https://github.com/justjake/codenames-redux
 
@@ -201,14 +202,18 @@ export default class CodenamesHubot extends SlackBot {
       return;
     }
 
+
     const spymasters = newLobby.players.filter(p => p.role === SPYMASTER).map(p => p.name);
-    const masterBoard = renderGame(newLobby, true);
-    const publicBoard = renderGame(newLobby, false);
-    res.text(`Your codenames game in ${this.channelOf(req)} changed.`, spymasters);
-    res.text(`here is the new game state:`, spymasters);
+    const masterBoard = renderGame(newLobby, true, true);
+    const publicBoard = renderGame(newLobby, false, true);
+
+    // first do the public board, since buffered messages take time to post
+    res.text(publicBoard);
+
+    // then tell the spymasters
+    res.text(`Your codenames game in ${this.channelOf(req)} changed:`, spymasters);
     res.text(masterBoard, spymasters);
 
-    res.text(publicBoard)
   }
 
   // commands
@@ -372,5 +377,7 @@ export default class CodenamesHubot extends SlackBot {
   }
 
   testLeaveChannel(argv, req, res) {
+    const channelToLeave = argv._[0] || this.guardChannel(req);
+
   }
 }

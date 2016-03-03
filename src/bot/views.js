@@ -20,7 +20,7 @@ export function renderPlayerList(players) {
 }
 
 export function renderPlayer(player) {
-  return `${player.name} (${player.role})`
+  return `${dontMention(player.name)} (${player.role})`
 }
 
 export function emoji(name) {
@@ -73,10 +73,17 @@ export function renderBoard(board, showUnguessedColors) {
   return grid.map(row => row.join(' ')).join("\n");
 }
 
-export function renderGame(rootState, showUnguessed) {
+export function dontMention(username) {
+  const [first, second, ...rest] = username.split('');
+  return [first, second, '.', ...rest].join('');
+}
+
+export function mention(username) { return username; }
+
+export function renderGame(rootState, showUnguessed, mentionUsers=false) {
   const game = rootState.game;
   const history = renderClueHistory(game.clueHistory);
   const board = renderBoard(game.board, showUnguessed);
-  const prompt = renderPrompt(rootState);
+  const prompt = renderPrompt(rootState, mentionUsers ? mention : dontMention);
   return `${history}\n\n${board}\n\n${prompt}`;
 }
