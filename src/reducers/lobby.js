@@ -1,6 +1,16 @@
 import gameReducer, { initialState as gameInitialState } from './game';
-import { SPYMASTER, GUESSER, RESET, START_NEW_GAME, ELECT_SPYMASTER,
-         REGISTER_PLAYER, REMOVE_PLAYER, RED, BLUE } from '../constants';
+import {
+  SPYMASTER,
+  GUESSER,
+  RESET,
+  START_NEW_GAME,
+  ELECT_SPYMASTER,
+  REGISTER_PLAYER,
+  REMOVE_PLAYER,
+  RED,
+  BLUE,
+  GAME_OVER,
+} from '../constants';
 import {
   merge, nextTeam,
   spymastersOf,
@@ -70,7 +80,18 @@ export default function lobbyReducer(state = initialState(), action) {
   default:
     // handle other actions with gameReducer
     const newGame = gameReducer(state.game, action);
-    if (newGame !== state.game) return merge(state, {game: newGame});
+    if (newGame !== state.game) {
+      let players = state.players;
+      if (state.game &&
+          newGame.phase === GAME_OVER &&
+          state.game.phase !== GAME_OVER) {
+            // someone just won a game. we should make all players into guessers
+            // so that we have fresh spymasters next game.
+            // This also forces roster considerations before starting a new game.
+            players = players.map(p => playerToRole(p, GUESSER))
+      }
+      return merge(state, {game: newGame, players: players});
+    }
     return state;
   }
 }
