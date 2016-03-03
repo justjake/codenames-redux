@@ -120,6 +120,10 @@ export default class Board {
     return this.key[row][col];
   }
 
+  wordsOf(team) {
+    return this.wordsInBoard.filter(w => this.teamOf(w) === team)
+  }
+
   statusOf(word) {
     const [row, col] = this.loc(word);
     return this.picks[row][col];
@@ -130,7 +134,7 @@ export default class Board {
   }
 
   getDepleted() {
-    [KILL, RED, BLUE].filter(team => this.remaining[team] === 0)[0];
+    return [KILL, RED, BLUE].filter(team => this.remaining[team] === 0)[0] || null;
   }
 
   // map over every cell in this.words.grid with cellFormatFn
