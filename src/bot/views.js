@@ -1,7 +1,8 @@
-import { RED, BLUE, KILL, NEUTRAL, PLAYER_TEAMS } from '../constants';
+import { RED, BLUE, KILL, NEUTRAL, PLAYER_TEAMS, TEAMS } from '../constants';
 import renderClueHistory from '../views/renderClueHistory';
 import renderPrompt from '../views/renderPrompt';
 import { longest, pad } from '../utils';
+import { repeat } from 'lodash';
 
 export function renderTeams(players) {
   return PLAYER_TEAMS.map(
@@ -57,6 +58,14 @@ export function renderLegend() {
   return tokens.join('\n');
 }
 
+function renderRemaining(board) {
+  return TEAMS.map(team => {
+    const count = board.remaining[team];
+    if (count === 0) return `all ${card(team, true)} picked`;
+    return repeat(card(team, false), count) + ` (${count})`
+  }).join(', ')
+}
+
 export function renderBoard(board, showUnguessedColors) {
   const maxLenWord = longest(board.getWords());
   const maxLen = maxLenWord.length;
@@ -69,8 +78,11 @@ export function renderBoard(board, showUnguessedColors) {
     return `${icon}${fixedwidth(padded)}`;
   }
 
-  const grid = board.mapWordGrid(formatWord);
-  return grid.map(row => row.join(' ')).join("\n");
+  const grid = board.mapWordGrid(formatWord)
+                    .map(row => row.join(' '))
+                    .join("\n");
+  const remaining = renderRemaining(board);
+  return `${grid}\n${remaining}`;
 }
 
 export function dontMention(username) {
