@@ -61,8 +61,8 @@ export function renderLegend() {
 function renderRemaining(board) {
   return TEAMS.map(team => {
     const count = board.remaining[team];
-    if (count === 0) return `all ${card(team, true)} picked`;
-    return repeat(card(team, false), count) + ` (${count})`
+    if (count === 0) return `${card(team, true)} all picked`;
+    return repeat(card(team, false), count) + ` ${count}`
   }).join(', ')
 }
 
