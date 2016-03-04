@@ -7,11 +7,31 @@ import { giveClue, guess } from '../../actions';
 import { GUESSER, SPYMASTER, GAME_OVER, KILL } from '../../constants';
 import { nextTeam } from '../../utils';
 
+function afterGiveClue(state, word, count) {
+  const clue = new Clue(word, count);
+  const spymaster = new Player(state.team, SPYMASTER, 'a spymaster');
+  return gameReducer(state, giveClue(spymaster, clue));
+}
+
+function afterGuess(state, word) {
+  const player = new Player(state.team, GUESSER, 'a guesser');
+  return gameReducer(state, guess(player, word));
+}
+
 describe('reducers/game', () => {
   let state;
   beforeEach(() => {
     const b = new Board();
     state = initialState(b);
+  });
+
+  it(`state doesn't change when re-guessing a word`, () => {
+    state = afterGiveClue(state, 'bepis', 5);
+    const word = state.board.wordsOf(state.team)[0];
+    const afterFirstGuess = afterGuess(state, word);
+    const afterSecondGuess = afterGuess(afterFirstGuess, word);
+
+    assert.strictEqual(afterFirstGuess, afterSecondGuess, 'no state changed');
   });
 
   describe('when ending game', () => {

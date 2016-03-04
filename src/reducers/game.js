@@ -68,6 +68,8 @@ export default function gameReducer(state, action) {
     const word = action.word;
     // unsure how i should handle this. i don't really want to track errors in the store
     if (!state.board.hasWord(word)) throw new UnknownWordError(word);
+    // re-picking same word should do nothing
+    // if (state.board.statusOf(word) === state.team) return state;
     const newBoard = state.board.dup();
     newBoard.pick(word);
     const correct = newBoard.statusOf(word) === state.team;
