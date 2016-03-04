@@ -82,7 +82,7 @@ export function renderBoard(board, showUnguessedColors) {
                     .map(row => row.join(' '))
                     .join("\n");
   const remaining = renderRemaining(board);
-  return `${grid}\n${remaining}`;
+  return `${remaining}\n\n${grid}`;
 }
 
 export function dontMention(username) {
