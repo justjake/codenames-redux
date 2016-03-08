@@ -19,7 +19,10 @@ export default function renderPrompt(lobby, mangleName = n => n) {
     const guessers = ofTeam(lobby.players, game.team).filter(p => p.role === GUESSER);
     const guessersList = guessers.map(p => mangleName(p.name)).join(', ');
     const clue = latestClue(game.clueHistory);
-    return `players on the ${teamName} (${guessersList}) team should guess a word! They have ${game.remainingGuesses} left for the clue ${clue ? renderClue(clue) : 'ZOMFG NO CLUE GIVEN???'}`
+    if (game.remainingGuesses === 1) {
+      return `players on the ${teamName} (${guessersList}) team should guess a word! They have 1 extra guess left.`
+    }
+    return `players on the ${teamName} (${guessersList}) team should guess a word! They have ${game.remainingGuesses-1} (+1) left for the clue ${clue ? renderClue(clue) : 'ZOMFG NO CLUE GIVEN???'}`
   }
 
   if (game.phase === GAME_OVER) {
