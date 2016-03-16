@@ -197,9 +197,9 @@ export default class CodenamesHubot extends SlackBot {
       return;
     }
 
-
+    const currentGame = newLobby.game;
     const spymasters = newLobby.players
-      .filter(p => p.role === SPYMASTER && p.team === game.team)
+      .filter(p => p.role === SPYMASTER && (!currentGame || p.team === currentGame.team))
       .map(p => p.name);
     const masterBoard = renderGame(newLobby, true, true);
     const publicBoard = renderGame(newLobby, false, true);
