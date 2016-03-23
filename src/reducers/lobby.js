@@ -4,6 +4,7 @@ import {
   GUESSER,
   RESET,
   START_NEW_GAME,
+  SHUFFLE_PLAYERS,
   ELECT_SPYMASTER,
   REGISTER_PLAYER,
   REMOVE_PLAYER,
@@ -17,6 +18,7 @@ import {
   guessersOf,
   ofTeam,
   playerByName,
+  shuffled,
 } from '../utils';
 import ExtendableError from 'es6-error';
 import Board from '../models/Board';
@@ -40,13 +42,13 @@ export function initialState() {
  */
 export default function lobbyReducer(state = initialState(), action) {
   console.log('ACTION', action);
+  const teams = [RED, BLUE];
   switch (action.type) {
 
   case RESET:
     return initialState();
 
   case START_NEW_GAME:
-    const teams = [RED, BLUE];
     // make sure we have the right sorts of players
     teams.forEach(team => {
       const members = ofTeam(state.players, team);
@@ -55,6 +57,19 @@ export default function lobbyReducer(state = initialState(), action) {
     });
     // ok seems legit
     return merge(state, {game: gameInitialState(new Board())});
+
+  //shuffle teams and spymasters
+  case SHUFFLE_PLAYERS:
+    const players = shuffled(state.players);
+
+    let ret = [];
+    for (let i = players.length - 1; i >= 0; i--) {
+      const player = players[i];
+      const role = i <= 1 ? SPYMASTER : GUESSER;
+      const newPlayer = new Player(teams[i % 2], role, player.name);
+      ret.push(newPlayer);
+    }
+    return merge(state, {players: ret});
 
   case ELECT_SPYMASTER:
     // create version of this player who is a spymaster

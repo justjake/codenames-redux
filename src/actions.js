@@ -6,6 +6,7 @@ import {
   REGISTER_PLAYER,
   REMOVE_PLAYER,
   ELECT_SPYMASTER,
+  SHUFFLE_PLAYERS,
   START_NEW_GAME,
   RESET,
 
@@ -44,6 +45,12 @@ export function registerPlayer(name, team) {
     type: REGISTER_PLAYER,
     name,
     team,
+  }
+}
+
+export function shufflePlayers(name, team) {
+  return {
+    type: SHUFFLE_PLAYERS,
   }
 }
 

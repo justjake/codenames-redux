@@ -31,6 +31,7 @@ export const SKIP = 'skip';
 
 // lobby constants
 export const REGISTER_PLAYER = 'register player';
+export const SHUFFLE_PLAYERS = 'shuffle players';
 export const ELECT_SPYMASTER = 'elect player as spymaster';
 export const START_NEW_GAME = 'start new game';
 export const RESET = 'fuck it we out';
