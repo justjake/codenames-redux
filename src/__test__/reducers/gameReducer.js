@@ -34,6 +34,11 @@ describe('reducers/game', () => {
     assert.strictEqual(afterFirstGuess, afterSecondGuess, 'no state changed');
   });
 
+  it(`gives lots of guesses when giving a clue with 0`, () => {
+    const afterGuess = afterGiveClue(state, 'bepis', 0);
+    assert.isAbove(afterGuess.remainingGuesses, 5 * 5, 'enough guesses');
+  });
+
   describe('when ending game', () => {
     let team;
     let finalWord;

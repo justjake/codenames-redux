@@ -7,6 +7,8 @@ import { Board } from '../models/Board';
 import { includes } from 'lodash';
 import { UnknownWordError } from '../errors';
 
+// more guesses than words on the board. Close enough.
+const POSITIVE_INFINITY = 999;
 
 export function initialState(board) {
   return {
@@ -60,7 +62,7 @@ export default function gameReducer(state, action) {
     // super simple - no wins / losses / etc just tick to next phase and record the clue
     return merge(state, {
       phase: nextPhase(state.phase),
-      remainingGuesses: action.clue.count + 1,
+      remainingGuesses: action.clue.count === 0 ? POSITIVE_INFINITY : action.clue.count + 1,
       clueHistory: clueHistoryReducer(state.clueHistory, action),
     });
     break;
