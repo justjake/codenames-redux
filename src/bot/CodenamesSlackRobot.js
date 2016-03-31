@@ -22,6 +22,7 @@ const CMD_JOIN_LOBBY = 'join';
 const CMD_LEAVE_LOBBY = 'leave';
 // const CMD_SET_TEAM = 'set-team'; // nah, let's just use CMD_JOIN_LOBBY instead
 const CMD_BECOME_SPYMASTER = 'become-spymaster';
+const CMD_SHUFFLE_TEAMS = 'shuffle';
 const CMD_POPULATE = 'populate-lobby';
 
 // channel commands
@@ -100,10 +101,12 @@ export default class CodenamesHubot extends SlackBot {
     this.addCommand(this.becomeSpymaster, CMD_BECOME_SPYMASTER);
     this.addCommand(this.shufflePlayers, CMD_SHUFFLE_TEAMS)
         .changesTeams();
+    this.addCommand(this.shufflePlayers, CMD_SHUFFLE_TEAMS)
+        .changesTeams();
 
     // game commands
     this.addCommand(this.newGame, CMD_NEW_GAME)
-        .setHelp(`start a new codenames game! Run this command once you're satisfied with team ballance, etc.`)
+        .setHelp(`start a new codenames game! Run this command once you're satisfied with team balance, etc.`)
         .changesGame();
     this.addCommand(this.guess, CMD_GUESS)
       .setHelp(`guess WORD. guess a word! Don't worry, if it's not a real word, nothing happens.`)
@@ -264,9 +267,9 @@ export default class CodenamesHubot extends SlackBot {
       res.text(renderGame(lobby, false));
       // send the board to the spymaster
       if (player && player.role === SPYMASTER) {
-        const text = renderGame(lobby, true);
-        if (text.includes('should give a clue')) {
-          res.text(text, player.name);
+        const gameText = renderGame(lobby, true);
+        if (gameText.includes('should give a clue')) {
+          res.text(gameText, player.name);
         }
       }
     } else {
@@ -296,12 +299,12 @@ export default class CodenamesHubot extends SlackBot {
     const username = this.usernameOf(req);
     const player = playerByName(lobby.players, username);
     let team;
-    if (argv._[0] !== 'red' && argv._[0] !== 'blue') {
-      if (this.numPlayersOnTeam(lobby, 'red') > this.numPlayersOnTeam(lobby, 'blue')) {
-        team = 'blue';
+    if (argv._[0] !== RED && argv._[0] !== BLUE) {
+      if (this.numPlayersOnTeam(lobby, RED) > this.numPlayersOnTeam(lobby, BLUE)) {
+        team = BLUE;
       }
       else {
-        team = 'red';
+        team = RED;
       }
     }
     else {
