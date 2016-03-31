@@ -22,6 +22,7 @@ const CMD_JOIN_LOBBY = 'join';
 const CMD_LEAVE_LOBBY = 'leave';
 // const CMD_SET_TEAM = 'set-team'; // nah, let's just use CMD_JOIN_LOBBY instead
 const CMD_BECOME_SPYMASTER = 'become-spymaster';
+const CMD_SHUFFLE_TEAMS = 'shuffle';
 const CMD_POPULATE = 'populate-lobby';
 
 // channel commands
@@ -100,10 +101,12 @@ export default class CodenamesHubot extends SlackBot {
     this.addCommand(this.becomeSpymaster, CMD_BECOME_SPYMASTER);
     this.addCommand(this.shufflePlayers, CMD_SHUFFLE_TEAMS)
         .changesTeams();
+    this.addCommand(this.shufflePlayers, CMD_SHUFFLE_TEAMS)
+        .changesTeams();
 
     // game commands
     this.addCommand(this.newGame, CMD_NEW_GAME)
-        .setHelp(`start a new codenames game! Run this command once you're satisfied with team ballance, etc.`)
+        .setHelp(`start a new codenames game! Run this command once you're satisfied with team balance, etc.`)
         .changesGame();
     this.addCommand(this.guess, CMD_GUESS)
       .setHelp(`guess WORD. guess a word! Don't worry, if it's not a real word, nothing happens.`)

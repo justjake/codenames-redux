@@ -4,7 +4,7 @@ import Player from '../../models/Player';
 import Clue from '../../models/Clue';
 import gameReducer, { initialState as gameInitialState } from '../../reducers/game';
 import lobbyReducer, { initialState as lobbyInitialState } from '../../reducers/lobby';
-import { giveClue, guess, registerPlayer, electSpymaster, startNewGame } from '../../actions';
+import { giveClue, guess, registerPlayer, shufflePlayers, electSpymaster, startNewGame } from '../../actions';
 import { GUESSER, SPYMASTER, GAME_OVER, KILL, RED, BLUE } from '../../constants';
 import { playerByName } from '../../utils';
 import setUpGame, {
@@ -51,6 +51,16 @@ describe('reducers/lobby', () => {
       const newState = lobbyReducer(state, makeGuess());
       assert.isAbove(newState.players.length, 0, 'we still have players');
       newState.players.forEach(p => assert.strictEqual(p.role, GUESSER, 'player is guesser'));
+    })
+
+    it('shuffle works', () => {
+      const newState = lobbyReducer(state, shufflePlayers());
+      assert.isAbove(newState.players.length, 0, 'we still have players');
+      const numSpymasters =
+        newState.players.filter(p =>
+          p.role === SPYMASTER
+        ).length;
+      assert.equal(numSpymasters, 2, 'there are 2 spymasters');
     })
   })
 })
