@@ -46,8 +46,17 @@ export default class SlackBot extends Bot {
 
   addSlackRobotListener() {
     this.robot.listen(SLACK_RESPOND_REGEX, this.listener);
-    this.robot.listen('cn', this.listener);
-    this.robot.listen('cn :words(.+)', this.listener);
+
+    const prefixes = [
+      'cn',
+      'Cn',
+      'CN',
+      'cN'
+    ];
+    prefixes.forEach(prefix => {
+      this.robot.listen(prefix, this.listener);
+      this.robot.listen(`${prefix} :words(.+)`, this.listener);
+    });
   }
 
   // where the magic happens
