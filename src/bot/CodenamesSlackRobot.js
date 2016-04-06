@@ -96,11 +96,10 @@ export default class CodenamesHubot extends SlackBot {
 
     // membership management
     this.addCommand(this.joinTeam, CMD_JOIN_LOBBY)
-        .setHelp(`use this command to join the game or switch teams. You must specify the team you want to join.`)
-        .changesTeams();
-    this.addCommand(this.leaveGame, CMD_LEAVE_LOBBY)
-        .changesTeams();
-    this.addCommand(this.becomeSpymaster, CMD_BECOME_SPYMASTER)
+        .setHelp(`use this command to join the game or switch teams. You must specify the team you want to join.`);
+    this.addCommand(this.leaveGame, CMD_LEAVE_LOBBY);
+    this.addCommand(this.becomeSpymaster, CMD_BECOME_SPYMASTER);
+    this.addCommand(this.shufflePlayers, CMD_SHUFFLE_TEAMS)
         .changesTeams();
     this.addCommand(this.shufflePlayers, CMD_SHUFFLE_TEAMS)
         .changesTeams();
@@ -268,10 +267,13 @@ export default class CodenamesHubot extends SlackBot {
       res.text(renderGame(lobby, false));
       // send the board to the spymaster
       if (player && player.role === SPYMASTER) {
-        res.text(renderGame(lobby, true), player.name);
+        const gameText = renderGame(lobby, true);
+        if (gameText.includes('should give a clue')) {
+          res.text(gameText, player.name);
+        }
       }
     } else {
-      res.text(`no game in progress. Once you have enough players, start one with ${CMD_NEW_GAME}.`)
+      res.text(`No game in progress. Once you have enough players, start one with ${CMD_NEW_GAME}.`)
     }
   }
 
@@ -279,13 +281,16 @@ export default class CodenamesHubot extends SlackBot {
     const channel = this.guardChannel(req);
     const { lobby, lobbyDispatcher } = this.guardLobby(channel);
 
-    if (lobby.players.filter(p => p.role === SPYMASTER).length === 0) {
+    if (!lobby.game || lobby.game.winner) {
       lobbyDispatcher.shufflePlayers();
-      res.reply(`Shuffled teams.`);
+      res.reply('Shuffled teams.');
+    } else {
+      res.reply('Did not shuffle. Game in progress.');
     }
-    else {
-      res.reply(`Did not shuffle. Team formation in progress.`)
-    }
+  }
+
+  numPlayersOnTeam(lobby, team) {
+    return lobby.players.filter(p => p.team === team).length;
   }
 
   joinTeam(argv, req, res) {
@@ -293,7 +298,18 @@ export default class CodenamesHubot extends SlackBot {
     const { lobby, lobbyDispatcher } = this.guardLobby(channel);
     const username = this.usernameOf(req);
     const player = playerByName(lobby.players, username);
-    const team = argv._[0];
+    let team;
+    if (argv._[0] !== RED && argv._[0] !== BLUE) {
+      if (this.numPlayersOnTeam(lobby, RED) > this.numPlayersOnTeam(lobby, BLUE)) {
+        team = BLUE;
+      }
+      else {
+        team = RED;
+      }
+    }
+    else {
+      team = argv._[0];
+    }
 
     if (!includes(PLAYER_TEAMS, team)) {
       res.reply(`Sorry, can't add you as a player on team ${s(team)}`);
