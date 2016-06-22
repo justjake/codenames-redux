@@ -29,7 +29,7 @@ export default function renderPrompt(lobby, mangleName = n => n) {
     const winner = game.winner;
     const winningTeam = ofTeam(lobby.players, winner);
     const winningTeamList = winningTeam.map(p => mangleName(p.name)).join(', ');
-    return `GAME OVER! Team ${winner} has won the game! Congradulations to ${winningTeamList}`;
+    return `GAME OVER! Team ${winner} has won the game! Congratulations to ${winningTeamList}`;
   }
 
   return `the game is in an unknown state called "${game.phase}"`;
