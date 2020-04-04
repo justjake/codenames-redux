@@ -27,7 +27,7 @@
     "es6-error": "2.0.2",
     "express": "4.13.4",
     "history": "2.0.0",
-    "lodash": "4.3.0",
+    "lodash": "4.17.15",
     "material-ui": "0.14.4",
     "minimist": "1.2.0",
     "node-persist": "0.0.8",
