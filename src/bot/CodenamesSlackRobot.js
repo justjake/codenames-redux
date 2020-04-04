@@ -209,10 +209,11 @@ export default class CodenamesHubot extends SlackBot {
     // first do the public board, since buffered messages take time to post
     res.text(publicBoard);
 
-    // then tell the spymasters
-    res.text(`Your codenames game in ${this.channelOf(req)} changed.`, spymasters);
-    res.text(masterBoard, spymasters);
-
+    // then tell the spymasters if action is required from them
+    if (masterBoard.includes('should give a clue')) {
+      res.text(`Your codenames game in ${this.channelOf(req)} changed.`, spymasters);
+      res.text(masterBoard, spymasters);
+    }
   }
 
   // commands
