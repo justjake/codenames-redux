@@ -170,7 +170,7 @@ export default class CodenamesHubot extends SlackBot {
     result.channel = channel;
     const player = playerByName(result.lobby.players, username);
 
-    if (!player) throw new RequiresPlayerError(`No player for username ${s(username)}`);
+    if (!player) throw new RequiresPlayerError(`No player for username ${s(username)}. Try "cn join" first.`);
     result.player = player;
     return result;
   }
