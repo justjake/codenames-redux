@@ -5,7 +5,7 @@
   "scripts": {
     "start": "node ./server.js",
     "build": "rm -rf ./lib && babel ./src -d ./lib",
-    "prepublish": "npm run build",
+    "prepublishOnly": "npm run build",
     "bot": "babel-node ./src/bot/index.js",
     "test-watch": "mocha --watch ./src/__test__/",
     "test": "mocha ./src/__test__/"
