@@ -2,6 +2,8 @@ import parseArgs from 'minimist';
 import Command from './Command';
 import { CMD_HELP, CMD_BAD_COMMAND } from './constants';
 
+function code(s) { return '`' + s + '`' }
+
 export default class Bot {
   constructor() {
     this.commands = [];
@@ -62,9 +64,9 @@ export default class Bot {
   renderCommands() {
     return this.commands.map(cmd => {
       const aliases = cmd.aliases.length ?
-                      `(aliases: ${cmd.aliases.join(', ')})`:
+                      `(aliases: ${cmd.aliases.map(code).join(', ')})`:
                       '';
-      return `  ${cmd.name} ${aliases}`;
+      return `  ${code(cmd.name)} ${aliases}`;
     }).join('\n');
   }
 
@@ -73,7 +75,7 @@ export default class Bot {
     return `
 ${this.help}
 
-List of commands:
+List of commands: (type \`cn help <command>\` for specific help)
 ${commands}`;
   }
 }
